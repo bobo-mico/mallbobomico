@@ -1,0 +1,47 @@
+### compile
+*.class
+
+### mavven
+target/
+
+### Builder
+build/
+out/
+gen/
+.gradle/
+local.properties
+
+### IntelliJ
+.idea/
+/idea/
+*.ipr
+*.iml
+*.iws
+
+### Eclipse
+.settings/
+.project
+.classpath
+.mymetadata
+
+### Package
+*.war
+*.ear
+
+### temp
+*.log
+*.cache
+*.diff
+*.patch
+*.tmp
+*.bak
+
+### system
+.DS_Store
+Thumbs.db
+
+### kdiff3
+*.orig
+
+### myself
+com/myself

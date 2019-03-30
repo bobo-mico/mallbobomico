@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bobomico.dao.SysPermissionMapperCustom" >
+  <sql id="Base_Column_List" >
+    id, name, type, url, percode, parentid, parentids, sortstring, available
+  </sql>
+
+  <!-- 根据用户id查询url todo 需要写一个查询片段 -->
+  <select id="findPermissionListByUserId" parameterType="integer" resultType="com.bobomico.dao.po.SysPermission">
+	SELECT
+		<include refid="Base_Column_List" />
+	FROM
+		sys_permission
+	WHERE TYPE = 'permission'
+	  AND id IN
+	  (SELECT
+	    sys_permission_id
+	  FROM
+	    sys_role_permission
+	  WHERE sys_role_id IN
+	    (SELECT
+	      sys_role_id
+	    FROM
+	      sys_user_role
+	    WHERE sys_user_id = #{userId}))
+  </select>
+  
+   <!-- 根据用户id查询菜单 -->
+  <select id="findMenuListByUserId"  parameterType="integer" resultType="com.bobomico.dao.po.SysPermission">
+	SELECT
+		<include refid="Base_Column_List" />
+	FROM
+		sys_permission
+	WHERE TYPE = 'menu' 
+	  AND id IN 
+	  (SELECT 
+	    sys_permission_id 
+	  FROM
+	    sys_role_permission 
+	  WHERE sys_role_id IN 
+	    (SELECT 
+	      sys_role_id 
+	    FROM
+	      sys_user_role 
+	    WHERE sys_user_id = #{userId}))
+  	</select>
+</mapper>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-4.3.xsd"
+       default-autowire="no" >
+
+    <!-- 读取属性文件 -->
+    <context:property-placeholder location="classpath:datasource.properties" ignore-unresolvable="true" />
+
+    <!-- 数据源 -->
+    <bean id="quartzDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName">
+            <value>${db.driverClassName}</value>
+        </property>
+        <property name="url">
+            <value>${db.url}</value>
+        </property>
+        <property name="username">
+            <value>${db.username}</value>
+        </property>
+        <property name="password">
+            <value>${db.password}</value>
+        </property>
+    </bean>
+
+    <!-- 配置带参Job -->
+    <bean id="UserScheduler" class="com.bobomico.quartz.stevexie.scheduler.UserScheduler">
+        <constructor-arg ref="userStatusSubject" />
+    </bean>
+
+    <!-- 第三元素 -->
+    <!-- 调度器 -->
+    <bean id="quartzScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <!-- 重要!!! -->
+        <property name="jobFactory" ref="myJobFactory"/>
+        <!-- 绑定JobDetails -->
+        <property name="jobDetails">
+            <list>
+                <!--<ref bean="unlockJobDetail" />-->
+                <!--<ref bean="JobDetail" />-->
+            </list>
+        </property>
+        <!-- 绑定Trigger -->
+        <property name="triggers">
+            <list>
+                <!--<ref bean="CronTrigger"/>-->
+                <!--<ref bean="definedInXMLcronTrigger"/>-->
+            </list>
+        </property>
+    </bean>
+
+    <!-- 第一元素 第一种配置方式 简单实用 但是功能有限 -->
+    <!--<bean id="unlockJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
+        <!--<property name="targetObject" ref="unlockJob" />-->
+        <!--<property name="targetMethod" value="printMessage" />-->
+    <!--</bean>-->
+
+    <!-- Simple触发器 -->
+    <!-- 距离当前时间1秒之后执行，之后每隔两秒钟执行一次 -->
+    <!--<bean id="unlockTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">-->
+        <!--<property name="jobDetail"  ref="unlockJobDetail"/>-->
+        <!--&lt;!&ndash; 启动时间 &ndash;&gt;-->
+        <!--&lt;!&ndash;<property name="startDelay"  value="1000"/>&ndash;&gt;-->
+        <!--&lt;!&ndash; 重复策略 &ndash;&gt;-->
+        <!--&lt;!&ndash;<property name="repeatInterval"  value="2000"/>&ndash;&gt;-->
+    <!--</bean>-->
+
+    <!-- 第一元素 第二种配置方式 可选参数更多 功能强大 -->
+    <bean id="JobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+        <!-- 非空 在此处定义任务描述 -->
+        <property name="jobClass" value="com.bobomico.quartz.stevexie.jobdetail.UnlockJob" />
+        <!-- 非空 在此处定义任务名 -->
+        <property name="name" value="unlockJob" />
+        <!-- 非空 在此处定义job group name -->
+        <property name="group" value="userLoginGroup" />
+        <!-- 可选 设置该job是否具有持久性 -->
+        <property name="durability" value="true" />
+        <!-- 可选 设置该job是否中断后可恢复 -->
+        <property name="requestsRecovery" value="true" />
+        <!-- 可选 设置jobDataMap -->
+        <!--<property name="jobDataMap">-->
+            <!--<map>-->
+                <!--<entry key="LoginUser" value-ref="UserLoginVO"/>-->
+            <!--</map>-->
+        <!--</property>-->
+    </bean>
+
+    <!-- Cron触发器 -->
+    <bean id="CronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <!-- 非空 在此处定义trigger name -->
+        <property name="name" value="unlockTrigger" />
+        <!-- 非空 在此处定义trigger group name -->
+        <property name="group" value="userLoginGroup" />
+        <!-- 与jobDetail绑定 -->
+        <property name="jobDetail" ref="JobDetail" />
+        <!-- 非空 在此处定义定时任务时间 -->
+        <property name="cronExpression" value="0/3 * * * * ? *" />    <!-- http://cron.qqe2.com/ -->
+        <!-- 非空 在此处定义市区 -->
+        <!--<property name="timeZone" ref="timeZone4Job" />-->
+        <!--<property name="misfireInstruction" value="1" />-->
+        <!--<property name="startDelay"  value="1000"/>-->
+    </bean>
+
+    <!-- 时区 -->
+    <bean id ="timeZone4Job" class="java.util.TimeZone" factory-method="getTimeZone">
+        <constructor-arg value="GMT+8:00" type="java.lang.String"/> <!-- https://www.cnblogs.com/seasonsluo/p/5651098.html -->
+    </bean>
+
+</beans>
