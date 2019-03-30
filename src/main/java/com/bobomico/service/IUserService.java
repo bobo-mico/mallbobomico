@@ -3,6 +3,7 @@ package com.bobomico.service;
 import com.bobomico.common.ServerResponse;
 import com.bobomico.controller.vo.UserLoginVO;
 import com.bobomico.dao.po.SysPermission;
+import com.bobomico.dao.po.SysQuestionAnswer;
 import com.bobomico.dao.po.SysUserInf;
 import com.bobomico.dao.po.SysUserLogin;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -45,4 +46,7 @@ public interface IUserService {
 
     // 获取个人详细信息
     ServerResponse<SysUserInf> getInformation(Integer userId);
+
+    // 设置密码提示问题和答案
+    ServerResponse<String> insertQuestionAnswer(List<SysQuestionAnswer> sysQuestionAnswers);
 }

@@ -3,10 +3,15 @@ package com.bobomico.dao.po;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.base.Optional;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
+/**
+ * 在Controller中返回的json都是走的阿里fastjson
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SysUserInf {
 
@@ -178,22 +183,31 @@ public class SysUserInf {
     }
 
     public char[] getSex(){
-        if(this.gender.equals("0")){
-            return new char[]{'小','姐','姐'};
+        Optional<String> optional = Optional.fromNullable(gender);
+        if (optional.isPresent()) {
+            switch (gender) {
+                case "0":
+                    return new char[]{'小','姐','姐'};
+                case "1":
+                    return new char[]{'小', '哥' , '哥'};
+            }
         }
-        return new char[]{'小', '哥' , '哥'};
+        return null;
     }
 
     public char[] getCardType(){
-        switch(this.identityCardType){
-            case 1:
-                return new char[]{'身','份','证'};
-            case 2:
-                return new char[]{'驾','驶','证'};
-            case 3:
-                return new char[]{'军','官','证'};
-            case 4:
-                return new char[]{'护','照'};
+        Optional<Byte> optional = Optional.fromNullable(identityCardType);
+        if (optional.isPresent()) {
+            switch (identityCardType) {
+                case 1:
+                    return new char[]{'身','份','证'};
+                case 2:
+                    return new char[]{'驾','驶','证'};
+                case 3:
+                    return new char[]{'军','官','证'};
+                case 4:
+                    return new char[]{'护','照'};
+            }
         }
         return null;
     }

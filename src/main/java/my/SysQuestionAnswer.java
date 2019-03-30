@@ -1,4 +1,4 @@
-package com.bobomico.dao.po;
+package my;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;

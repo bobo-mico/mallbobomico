@@ -3,6 +3,7 @@
 <mapper namespace="com.bobomico.dao.SysQuestionAnswerMapper" >
   <resultMap id="BaseResultMap" type="com.bobomico.dao.po.SysQuestionAnswer" >
     <constructor >
+      <!-- 这个idArg是必须的 如果查询的结果没有这个字段 就会转换异常 -->
       <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="sys_user_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="question" jdbcType="VARCHAR" javaType="java.lang.String" />
@@ -107,9 +108,9 @@
   </update>
 
   <!-- 根据用户ID搜索密码提示问题 -->
-  <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+  <select id="selectByUserId" resultType="com.bobomico.pojo.Question" parameterType="java.lang.Integer" >
     select
-    <include refid="Base_Column_List" />
+    question
     from sys_question_answer
     where sys_user_id = #{userId,jdbcType=INTEGER}
   </select>

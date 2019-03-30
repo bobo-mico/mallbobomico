@@ -12,6 +12,7 @@ import com.bobomico.dao.po.SysPermission;
 import com.bobomico.dao.po.SysQuestionAnswer;
 import com.bobomico.dao.po.SysUserInf;
 import com.bobomico.dao.po.SysUserLogin;
+import com.bobomico.pojo.Question;
 import com.bobomico.pojo.RegisterUser;
 import com.bobomico.service.IUserService;
 import com.bobomico.shiro.token.EmailPasswordToken;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements IUserService {
@@ -262,7 +264,7 @@ public class UserServiceImpl implements IUserService {
         if(validResponse.isSuccess()){
             return ServerResponse.createByErrorMessage("用户不存在");
         }
-        List<SysQuestionAnswer> questions = sysQuestionAnswerMapper.selectByUserId(userId);
+        List<Question> questions = sysQuestionAnswerMapper.selectByUserId(userId);
         if(questions != null){
             return ServerResponse.createBySuccess(questions);
         }
@@ -356,5 +358,20 @@ public class UserServiceImpl implements IUserService {
         }
         // todo 通过sessionDAO将查询到的用户信息设置到缓存中
         return ServerResponse.createBySuccess(user);
+    }
+
+    /**
+     * 设置密码提示问题及答案
+     * @param questions
+     * @return
+     */
+    public ServerResponse<String> insertQuestionAnswer(List<SysQuestionAnswer> questions){
+        // 先过滤大于4的问题编号 todo 数据库加上问题编号
+        questions = questions.stream()
+                .filter(x -> x.getSysUserId() < 4)
+                .collect(Collectors.toList());
+        // 插入问题
+        questions.stream().forEach(sysQuestionAnswerMapper::updateByPrimaryKey);
+        return ServerResponse.createBySuccessMessage("密码问题已更新");
     }
 }
