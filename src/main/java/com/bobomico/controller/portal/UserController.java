@@ -2,8 +2,8 @@ package com.bobomico.controller.portal;
 
 import com.bobomico.common.Const;
 import com.bobomico.common.ServerResponse;
-import com.bobomico.controller.BaseContorller;
-import com.bobomico.controller.vo.UserLoginVO;
+import com.bobomico.controller.BaseController;
+import com.bobomico.controller.vo.UserLoginVo;
 import com.bobomico.dao.po.SysQuestionAnswer;
 import com.bobomico.dao.po.SysUserInf;
 import com.bobomico.dao.po.SysUserLogin;
@@ -34,11 +34,12 @@ import java.util.stream.Collectors;
  * @Author: Lion
  * @Date: 2018/6/20  8:13
  * @Description: 控制器就是指挥塔 不包含业务逻辑 只存在调用逻辑
+ *                  客户端 - 用户模块
  * @version: beta
  */
 @RestController
 @RequestMapping("/api/account")
-public class UserController extends BaseContorller {
+public class UserController extends BaseController {
 
     @Autowired
     private IUserService iUserService;
@@ -49,7 +50,7 @@ public class UserController extends BaseContorller {
      * @return
      */
     @PostMapping("/register.do")
-    public ServerResponse<String> register(@RequestBody UserLoginVO userLoginVO) {
+    public ServerResponse<String> register(@RequestBody UserLoginVo userLoginVO) {
         return iUserService.register(userLoginVO);
     }
 

@@ -3,7 +3,7 @@ package com.bobomico.service.impl;
 import com.bobomico.common.Const;
 import com.bobomico.common.ServerResponse;
 import com.bobomico.common.TokenCache;
-import com.bobomico.controller.vo.UserLoginVO;
+import com.bobomico.controller.vo.UserLoginVo;
 import com.bobomico.dao.SysPermissionMapperCustom;
 import com.bobomico.dao.SysQuestionAnswerMapper;
 import com.bobomico.dao.SysUserInfMapper;
@@ -57,7 +57,7 @@ public class UserServiceImpl implements IUserService {
      * @return
      */
     @Override
-    public ServerResponse<String> register(UserLoginVO userLoginVO){
+    public ServerResponse<String> register(UserLoginVo userLoginVO){
         String type = userLoginVO.getType();
         ServerResponse validResponse;
 

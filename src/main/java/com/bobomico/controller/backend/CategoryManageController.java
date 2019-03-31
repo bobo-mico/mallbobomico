@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
  * @ClassName: com.ccfit.po.mybatismain
  * @Author: Lion
  * @Date: 2018/6/20  8:13
- * @Description: 商品管理
+ * @Description: 后台 - 分类管理
  * @version: beta
  */
 @RestController

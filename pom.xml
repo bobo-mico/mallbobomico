@@ -194,7 +194,7 @@
 			<version>2.0.1</version>
 		</dependency>
 
-		<!-- mybatis pager -->
+		<!-- mybatis PageHelper -->
 		<dependency>
 			<groupId>com.github.pagehelper</groupId>
 			<artifactId>pagehelper</artifactId>

@@ -9,7 +9,7 @@ import java.util.Set;
  * @ClassName: com.ccfit.po.mybatismain
  * @Author: Lion
  * @Date: 2018/6/20  8:13
- * @Description: 商品分类管理管理
+ * @Description: 后台 - 商品分类管理
  * @version: beta
  */
 public interface ICategoryService {
@@ -23,8 +23,6 @@ public interface ICategoryService {
     // 添加子级商品分类
     ServerResponse<List<MallCategory>> getChildrenParallelCategory(Integer categoryId);
 
-    // ServerResponse<List<Integer>> selectCategoryAndChildrenById(Integer categoryId);
-
     // 检索分类及子分类
-    ServerResponse<Set<MallCategory>> selectCategoryAndChildrenById(Integer categoryId);
+    ServerResponse<List<Integer>> selectCategoryAndChildrenById(Integer categoryId);
 }

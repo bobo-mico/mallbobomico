@@ -15,10 +15,10 @@ import javax.servlet.http.HttpSession;
  * @ClassName: com.bobomico.controller.portal.mallbobomico
  * @Author: DELL
  * @Date: 2019/3/31  3:02
- * @Description: Controller工具箱
+ * @Description: Controller tools
  * @version:
  */
-public class BaseContorller {
+public class BaseController {
 
     /**
      * 获取当前用户 - 工具

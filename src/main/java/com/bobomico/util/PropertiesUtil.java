@@ -8,9 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
-/**
- *
- */
 public class PropertiesUtil {
 
     private static Logger logger = LoggerFactory.getLogger(PropertiesUtil.class);
@@ -18,11 +15,15 @@ public class PropertiesUtil {
     private static Properties props;
 
     static {
-        String fileName = "tsmall.properties";
+        String fileName = "bobomico.properties";
         props = new Properties();
         try {
-            props.load(new InputStreamReader(PropertiesUtil.class.getClassLoader().getResourceAsStream(fileName),"UTF-8"));
+            props.load(
+                    new InputStreamReader(
+                            PropertiesUtil.class.getClassLoader().getResourceAsStream(fileName),
+                            "UTF-8"));
         } catch (IOException e) {
+            // 在日志中打印异常信息
             logger.error("配置文件读取异常", e);
         }
     }
@@ -32,12 +33,15 @@ public class PropertiesUtil {
         if(StringUtils.isBlank(value)){
             return null;
         }
-        return value.trim();
+        return value.trim(); // 处理配置文件中的空格
     }
 
-    public static String getProperty(String key,String defaultValue){
+    // 如果key传错了 导致没取到值 依然可以用传进来的默认值
+    public static String getProperty(String key, String defaultValue){
         String value = props.getProperty(key.trim());
+        // 如果取值为空
         if(StringUtils.isBlank(value)){
+            // 设为默认值
             value = defaultValue;
         }
         return value.trim();

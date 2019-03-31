@@ -94,18 +94,18 @@ public class CategoryServiceImpl implements ICategoryService {
      * @param categoryId
      * @return
      */
-    public ServerResponse<Set<MallCategory>> selectCategoryAndChildrenById(Integer categoryId){
+    public ServerResponse<List<Integer>> selectCategoryAndChildrenById(Integer categoryId){
         Set<MallCategory> categorySet = Sets.newHashSet();
-        findChildCategory(categorySet, categoryId);
+        findChildCategory(categorySet,categoryId);
 
-        // todo 可使用stream流处理
+
         List<Integer> categoryIdList = Lists.newArrayList();
         if(categoryId != null){
             for(MallCategory categoryItem : categorySet){
                 categoryIdList.add(categoryItem.getId());
             }
         }
-        return ServerResponse.createBySuccess(categorySet);
+        return ServerResponse.createBySuccess(categoryIdList);
     }
 
     /**
