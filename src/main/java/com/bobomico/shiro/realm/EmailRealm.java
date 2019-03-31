@@ -1,7 +1,9 @@
 package com.bobomico.shiro.realm;
 
 import com.bobomico.common.Const;
+import com.bobomico.dao.SysRoleMapper;
 import com.bobomico.dao.po.SysPermission;
+import com.bobomico.dao.po.SysRole;
 import com.bobomico.dao.po.SysUserLogin;
 import com.bobomico.service.IUserService;
 import com.bobomico.shiro.token.EmailPasswordToken;
@@ -16,7 +18,10 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: com.bobomico.shiro.realm.mallbobomico
@@ -29,6 +34,9 @@ public class EmailRealm extends AuthorizingRealm {
 
     @Autowired
     private IUserService iUserService;
+
+    @Autowired
+    private SysRoleMapper sysRoleMapper;
 
     // 设置realm的名称
     @Override
@@ -53,7 +61,7 @@ public class EmailRealm extends AuthorizingRealm {
             e.printStackTrace();
         }
 
-
+        // 返回null等于抛出用户异常
         if (sysUserLogin == null) {
             return null;
         }
@@ -83,6 +91,7 @@ public class EmailRealm extends AuthorizingRealm {
 
         SysUserLogin sysUserLogin = (SysUserLogin) principalCollection.getPrimaryPrincipal();
 
+        // 检索用户权限
         List<SysPermission> permissions = null;
         try {
             permissions = iUserService.findPermissionListByUserId(sysUserLogin.getSysUserId());
@@ -92,10 +101,14 @@ public class EmailRealm extends AuthorizingRealm {
 
         // 填充用户权限
         SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
-        for(SysPermission sysPermission : permissions){
-            System.out.println("用户权限: " + sysPermission.getPercode());
-            simpleAuthorizationInfo.addStringPermission(sysPermission.getPercode());
-        }
+        List<String> permissionList = permissions.stream().map(SysPermission::getPercode).collect(Collectors.toList());
+        simpleAuthorizationInfo.addStringPermissions(permissionList);
+
+        // 检索用户角色
+        List<SysRole> roleList = sysRoleMapper.getRolesByUserId(sysUserLogin.getSysUserId());
+        List<String> roles = roleList.stream().map(SysRole::getName).collect(Collectors.toList());
+        // 填充用户角色
+        simpleAuthorizationInfo.setRoles(new HashSet(roles));
 
         // 在realm中调用checkPermission会引起递归
         return simpleAuthorizationInfo;

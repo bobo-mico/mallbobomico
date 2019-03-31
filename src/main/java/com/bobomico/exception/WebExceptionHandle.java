@@ -30,16 +30,17 @@ import org.apache.shiro.util.UnavailableConstructorException;
 import org.apache.shiro.util.UnknownClassException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.apache.shiro.authc.AuthenticationException;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-
 /**
  * @ClassName: com.bobomico.exception.mallbobomico
  * @Author: DELL
@@ -86,7 +87,7 @@ public class WebExceptionHandle {
      * @param response
      * @return
      */
-    // @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({ UnauthorizedException.class, AuthorizationException.class })
     public String authorizationException(HttpServletRequest request, HttpServletResponse response) {
         logger.info("用户授权异常");
@@ -188,3 +189,13 @@ public class WebExceptionHandle {
     }
 
 }
+
+/**
+ * Shiro-异常速查
+ *  IncorrectCredentialsException 登录密码错误
+ *  ExcessiveAttemptsException 登录失败次数过多
+ *  LockedAccountException 帐号已被锁定
+ *  DisabledAccountException 帐号已被禁用
+ *  ExpiredCredentialsException 帐号已过期
+ *  UnknownAccountException 帐号不存在
+ */

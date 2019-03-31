@@ -68,7 +68,25 @@
 <!--        <table tableName="sys_user_login" domainObjectName="SysUserLogin" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"/>-->
 <!--        <table tableName="sys_user_role" domainObjectName="SysUserRole" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"/>-->
 <!--        <table tableName="sys_user_inf" domainObjectName="SysUserInf" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"/>-->
-        <table tableName="sys_question_answer" domainObjectName="SysQuestionAnswer" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"/>
+        <table tableName="sys_question_answer" domainObjectName="SysQuestionAnswer" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">
+            <columnOverride column="qa_no">
+                <!-- 使用property属性来指定列要生成的属性名称 -->
+                <property name="property" value="qaNO"/>
+                <!-- javaType用于指定生成的domain的属性类型，使用类型的全限定名 -->
+                <property name="javaType" value="byte"/>
+                <!-- jdbcType用于指定该列的JDBC类型
+                <property name="jdbcType" value=""/>
+                 -->
+                <!-- typeHandler 用于指定该列使用到的TypeHandler，如果要指定，配置类型处理器的全限定名
+                    注意，mybatis中，不会生成到mybatis-config.xml中的typeHandler
+                    只会生成类似：where id = #{id,jdbcType=BIGINT,typeHandler=com._520it.mybatis.MyTypeHandler}的参数描述
+                <property name="jdbcType" value=""/>
+                -->
+                <!-- 参考table元素的delimitAllColumns配置，默认为false
+                <property name="delimitedColumnName" value=""/>
+                 -->
+            </columnOverride>
+        </table>
 <!--            <table tableName="bobomico_mall_cart" domainObjectName="MallCart" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"/>-->
 <!--            <table tableName="bobomico_mall_category" domainObjectName="MallCategory" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"/>-->
 <!--            <table tableName="bobomico_mall_order" domainObjectName="MallOrder" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"/>-->

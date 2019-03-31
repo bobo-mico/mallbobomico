@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,7 +63,7 @@ public class UserController extends BaseContorller {
     @PostMapping("/reset_password.do")
     @RequiresPermissions("user:update")
     public ServerResponse<String> resetPassword(
-            @RequestBody String passwordOld, @RequestBody String passwordNew, HttpSession session, HttpServletRequest request, HttpServletResponse response){
+            String passwordOld, String passwordNew, HttpSession session, HttpServletRequest request, HttpServletResponse response){
         SysUserLogin sysUserLogin = (SysUserLogin) getUserInfo(session, request, response);
         if(sysUserLogin == null){
             return ServerResponse.createByErrorMessage("获取用户信息异常");
@@ -73,7 +74,6 @@ public class UserController extends BaseContorller {
     /**
      * 获取用户详细信息
      * @param session
-     * @param request
      * @param response
      * @return
      */
@@ -137,7 +137,7 @@ public class UserController extends BaseContorller {
     @PostMapping("update_information.do")
     @RequiresAuthentication
     public ServerResponse<SysUserInf> updateInformation(
-            @RequestBody SysUserInf sysUserInf, HttpSession session, HttpServletRequest request, HttpServletResponse response){
+            SysUserInf sysUserInf, HttpSession session, HttpServletRequest request, HttpServletResponse response){
         SysUserLogin sysUserLogin = (SysUserLogin) getUserInfo(session, request, response);
         sysUserInf.setSysUserId(sysUserLogin.getSysUserId());
         sysUserInf.setSysUserInfId(sysUserLogin.getSysUserId());
@@ -160,9 +160,10 @@ public class UserController extends BaseContorller {
     @PostMapping("create_question_answer.do")
     @RequiresAuthentication
     public ServerResponse<String> createQuestionAnswer(
-            @RequestBody List<SysQuestionAnswer> questions, HttpSession session, HttpServletRequest request, HttpServletResponse response){
+            @RequestBody SysQuestionAnswer[] questions, HttpSession session, HttpServletRequest request, HttpServletResponse response){
         SysUserLogin sul = (SysUserLogin) getUserInfo(session, request, response);
-        questions.stream().peek(x -> x.setSysUserId(sul.getSysUserId()));
-        return iUserService.insertQuestionAnswer(questions);
+        List<SysQuestionAnswer> qs = Arrays.asList(questions);
+        qs = qs.stream().peek(x -> x.setSysUserId(sul.getSysUserId())).collect(Collectors.toList());
+        return iUserService.insertQuestionAnswer(qs);
     }
 }

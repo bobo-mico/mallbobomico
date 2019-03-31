@@ -366,12 +366,12 @@ public class UserServiceImpl implements IUserService {
      * @return
      */
     public ServerResponse<String> insertQuestionAnswer(List<SysQuestionAnswer> questions){
-        // 先过滤大于4的问题编号 todo 数据库加上问题编号
+        // 先过滤大于4的问题编号
         questions = questions.stream()
                 .filter(x -> x.getSysUserId() < 4)
                 .collect(Collectors.toList());
         // 插入问题
-        questions.stream().forEach(sysQuestionAnswerMapper::updateByPrimaryKey);
+        questions.stream().forEach(sysQuestionAnswerMapper::createSelective);
         return ServerResponse.createBySuccessMessage("密码问题已更新");
     }
 }

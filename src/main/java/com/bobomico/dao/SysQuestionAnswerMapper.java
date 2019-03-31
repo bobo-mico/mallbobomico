@@ -12,7 +12,6 @@ public interface SysQuestionAnswerMapper {
     int insert(SysQuestionAnswer record);
 
     int insertSelective(SysQuestionAnswer record);
-
     SysQuestionAnswer selectByPrimaryKey(Integer id);
 
     int updateByPrimaryKeySelective(SysQuestionAnswer record);
@@ -25,4 +24,6 @@ public interface SysQuestionAnswerMapper {
     // 根据用户ID检查问题答案
     int checkAnswer(@Param("sys_user_id")Integer userId, @Param("question")String question, @Param("answer")String answer);
 
+    // 如果不存在就创建密码提示问题 如果存在就更新
+    int createSelective(SysQuestionAnswer record);
 }

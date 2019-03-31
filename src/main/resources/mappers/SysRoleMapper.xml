@@ -70,4 +70,18 @@
       available = #{available,jdbcType=CHAR}
     where id = #{id,jdbcType=VARCHAR}
   </update>
+
+  <!-- 通过用户ID检索用户角色 -->
+  <select id="getRolesByUserId" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+        sys_role
+    WHERE id IN
+      (SELECT
+        sys_role_id
+        FROM
+          sys_user_role
+          WHERE sys_user_id = #{sysUserId,jdbcType=VARCHAR})
+  </select>
 </mapper>

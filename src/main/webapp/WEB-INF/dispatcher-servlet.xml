@@ -12,6 +12,23 @@
     http://www.springframework.org/schema/aop
     http://www.springframework.org/schema/aop/spring-aop.xsd">
 
+    <!-- LifecycleBeanPostProcessor 是管理shiro生命周期 不直接跟权限注解关联 -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+    <!-- 加上如下配置就解决了 -->
+    <aop:config proxy-target-class="true" />
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager" />
+    </bean>
+
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor">
+        <property name="proxyTargetClass" value="true" />
+    </bean>
+
+<!--    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">-->
+<!--        <property name="securityManager" ref="securityManager"/>-->
+<!--    </bean>-->
+
     <!-- 自定义全局异常处理框架 -->
     <bean id="webExceptionHandle" class="com.bobomico.exception.WebExceptionHandle"/>
     <!--配置全局异常统一响应处理器-->
@@ -19,13 +36,6 @@
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
         <context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
     </context:component-scan>
-
-    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
-    <!-- 开启aop 对类代理 这样shiro才能用注解开发 -->
-    <aop:config proxy-target-class="true" />
-    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
-        <property name="securityManager" ref="securityManager" />
-    </bean>
 
     <!-- springmvc的注解跟spring的注解是分开的 -->
     <context:component-scan base-package="com.bobomico" annotation-config="true"/>

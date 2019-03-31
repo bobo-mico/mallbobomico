@@ -48,7 +48,7 @@ public class CarTest {
         // questionAnswers.stream().map(qa1.setSysUserId(1));
 
         // 流 - 赋值
-        questionAnswers = questionAnswers.stream().map(i -> SysQuestionAnswer::setSysUserId(1));
+        // questionAnswers = questionAnswers.stream().map(i -> SysQuestionAnswer::setSysUserId(1));
 
         // 流 - 过滤
         questionAnswers = questionAnswers.stream()

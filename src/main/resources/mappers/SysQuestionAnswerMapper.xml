@@ -5,6 +5,7 @@
     <constructor >
       <!-- 这个idArg是必须的 如果查询的结果没有这个字段 就会转换异常 -->
       <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="qa_no" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="sys_user_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="question" jdbcType="VARCHAR" javaType="java.lang.String" />
       <arg column="answer" jdbcType="VARCHAR" javaType="java.lang.String" />
@@ -13,7 +14,7 @@
     </constructor>
   </resultMap>
   <sql id="Base_Column_List" >
-    id, sys_user_id, question, answer, create_time, update_time
+    id, qa_no, sys_user_id, question, answer, create_time, update_time
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
     select 
@@ -26,18 +27,21 @@
     where id = #{id,jdbcType=INTEGER}
   </delete>
   <insert id="insert" parameterType="com.bobomico.dao.po.SysQuestionAnswer" >
-    insert into sys_question_answer (id, sys_user_id, question, 
-      answer, create_time, update_time
-      )
-    values (#{id,jdbcType=INTEGER}, #{sysUserId,jdbcType=INTEGER}, #{question,jdbcType=VARCHAR}, 
-      #{answer,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+    insert into sys_question_answer (id, qa_no, sys_user_id, 
+      question, answer, create_time, 
+      update_time)
+    values (#{id,jdbcType=INTEGER}, #{qaNo,jdbcType=INTEGER}, #{sysUserId,jdbcType=INTEGER}, 
+      #{question,jdbcType=VARCHAR}, #{answer,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.bobomico.dao.po.SysQuestionAnswer" >
     insert into sys_question_answer
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
         id,
+      </if>
+      <if test="qaNo != null" >
+        qa_no,
       </if>
       <if test="sysUserId != null" >
         sys_user_id,
@@ -59,6 +63,9 @@
       <if test="id != null" >
         #{id,jdbcType=INTEGER},
       </if>
+      <if test="qaNo != null" >
+        #{qaNo,jdbcType=INTEGER},
+      </if>
       <if test="sysUserId != null" >
         #{sysUserId,jdbcType=INTEGER},
       </if>
@@ -79,6 +86,9 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.bobomico.dao.po.SysQuestionAnswer" >
     update sys_question_answer
     <set >
+      <if test="qaNo != null" >
+        qa_no = #{qaNo,jdbcType=INTEGER},
+      </if>
       <if test="sysUserId != null" >
         sys_user_id = #{sysUserId,jdbcType=INTEGER},
       </if>
@@ -99,7 +109,8 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.bobomico.dao.po.SysQuestionAnswer" >
     update sys_question_answer
-    set sys_user_id = #{sysUserId,jdbcType=INTEGER},
+    set qa_no = #{qaNo,jdbcType=INTEGER},
+      sys_user_id = #{sysUserId,jdbcType=INTEGER},
       question = #{question,jdbcType=VARCHAR},
       answer = #{answer,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -107,16 +118,23 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
 
+  <resultMap type="com.bobomico.pojo.Question" id="question_map">
+    <!-- 必须指定主键 -->
+    <id column="id"  property="id"></id>
+    <result column="qa_no" property="qaNo"></result>
+    <result column="question" property="question"></result>
+  </resultMap>
+
   <!-- 根据用户ID搜索密码提示问题 -->
-  <select id="selectByUserId" resultType="com.bobomico.pojo.Question" parameterType="java.lang.Integer" >
+  <select id="selectByUserId" parameterType="java.lang.Integer" resultMap="question_map">
     select
-    question
+    id, qa_no, question
     from sys_question_answer
     where sys_user_id = #{userId,jdbcType=INTEGER}
   </select>
 
   <!-- 根据用户ID检查密码提示问题答案 -->
-  <select id="checkAnswer" resultType="int" parameterType="map" >
+  <select id="checkAnswer" parameterType="map" resultType="int">
     select
     count(1)
     from sys_question_answer
@@ -125,4 +143,55 @@
     and answer = #{answer}
   </select>
 
+  <!-- 密码提示问题更新 如果没有就插入 如果存在就更新 -->
+  <insert id="createSelective" parameterType="com.bobomico.dao.po.SysQuestionAnswer" >
+    insert into sys_question_answer
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="qaNo != null" >
+        qa_no,
+      </if>
+      <if test="sysUserId != null" >
+        sys_user_id,
+      </if>
+      <if test="question != null" >
+        question,
+      </if>
+      <if test="answer != null" >
+        answer,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="qaNo != null" >
+        #{qaNo,jdbcType=INTEGER},
+      </if>
+      <if test="sysUserId != null" >
+        #{sysUserId,jdbcType=INTEGER},
+      </if>
+      <if test="question != null" >
+        #{question,jdbcType=VARCHAR},
+      </if>
+      <if test="answer != null" >
+        #{answer,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+    on duplicate key update question=values(question), answer=values(answer), update_time=values(update_time)
+  </insert>
 </mapper>

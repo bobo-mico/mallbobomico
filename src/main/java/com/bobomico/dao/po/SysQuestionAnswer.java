@@ -8,9 +8,11 @@ import java.util.Date;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SysQuestionAnswer {
-    @JsonIgnore
-    @JSONField(serialize=false)
+
     private Integer id;
+
+    // 前端用来排序的编号 其实可以不要 直接通过id就可以排序
+    private Integer qaNo;
 
     @JsonIgnore
     @JSONField(serialize=false)
@@ -18,7 +20,7 @@ public class SysQuestionAnswer {
 
     private String question;
 
-    @JsonIgnore
+    // @JsonIgnore // 忽略注解对进出都有效
     @JSONField(serialize=false)
     private String answer;
 
@@ -30,8 +32,9 @@ public class SysQuestionAnswer {
     @JSONField(serialize=false)
     private Date updateTime;
 
-    public SysQuestionAnswer(Integer id, Integer sysUserId, String question, String answer, Date createTime, Date updateTime) {
+    public SysQuestionAnswer(Integer id, Integer qaNo, Integer sysUserId, String question, String answer, Date createTime, Date updateTime) {
         this.id = id;
+        this.qaNo = qaNo;
         this.sysUserId = sysUserId;
         this.question = question;
         this.answer = answer;
@@ -49,6 +52,14 @@ public class SysQuestionAnswer {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getQaNo() {
+        return qaNo;
+    }
+
+    public void setQaNo(Integer qaNo) {
+        this.qaNo = qaNo;
     }
 
     public Integer getSysUserId() {
