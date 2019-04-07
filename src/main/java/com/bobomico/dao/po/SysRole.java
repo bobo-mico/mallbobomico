@@ -1,43 +1,18 @@
 package com.bobomico.dao.po;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SysRole {
     private String id;
 
     private String name;
 
     private String available;
-
-    public SysRole(String id, String name, String available) {
-        this.id = id;
-        this.name = name;
-        this.available = available;
-    }
-
-    public SysRole() {
-        super();
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id == null ? null : id.trim();
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name == null ? null : name.trim();
-    }
-
-    public String getAvailable() {
-        return available;
-    }
-
-    public void setAvailable(String available) {
-        this.available = available == null ? null : available.trim();
-    }
 }

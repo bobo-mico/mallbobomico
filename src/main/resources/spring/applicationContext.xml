@@ -19,4 +19,5 @@
     <import resource="applicationContext-datasource.xml"/>
     <import resource="applicationContext-shiro.xml"/>
     <import resource="applicationContext-quartz.xml"/>
+    <import resource="applicationContext-jedis.xml"/>
 </beans>

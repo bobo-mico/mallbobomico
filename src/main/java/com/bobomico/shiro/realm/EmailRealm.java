@@ -58,12 +58,11 @@ public class EmailRealm extends AuthorizingRealm {
         try {
             sysUserLogin = iUserService.findSysUserByTokenType(token);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
 
-        // 返回null等于抛出用户异常
-        if (sysUserLogin == null) {
-            return null;
+        if(sysUserLogin == null){
+            throw new UnknownAccountException();
         }
 
         // 账户被锁定

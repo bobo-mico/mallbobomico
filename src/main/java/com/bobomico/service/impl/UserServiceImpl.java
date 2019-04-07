@@ -1,6 +1,7 @@
 package com.bobomico.service.impl;
 
 import com.bobomico.common.Const;
+import com.bobomico.common.ResponseCode;
 import com.bobomico.common.ServerResponse;
 import com.bobomico.common.TokenCache;
 import com.bobomico.controller.vo.UserLoginVo;
@@ -167,7 +168,7 @@ public class UserServiceImpl implements IUserService {
      * @param type
      * @return
      */
-    private ServerResponse<String> checkValid(String subject, String type) {
+    public ServerResponse<String> checkValid(String subject, String type) {
         if(org.apache.commons.lang3.StringUtils.isNotBlank(type)) {
             if(Const.USERNAME.equals(type)) {
                 // 检查同名username
@@ -191,10 +192,12 @@ public class UserServiceImpl implements IUserService {
                 if (resultCount > 0) {
                     return ServerResponse.createByErrorMessage("用户已经存在");
                 }
+            }else{
+                return ServerResponse.createByErrorMessage("type参数错误");
             }
             // todo 后续追加手机注册逻辑
         }else{
-            return ServerResponse.createByErrorMessage("参数错误");
+            return ServerResponse.createByErrorMessage("subject参数错误");
         }
         return ServerResponse.createBySuccessMessage("校验成功");
     }

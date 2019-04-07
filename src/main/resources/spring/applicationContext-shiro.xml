@@ -18,7 +18,7 @@
         <!-- 安全管理器 -->
         <property name="securityManager" ref="securityManager" />
         <!-- 登录地址 可以不存在 一切行为在过滤器中完成 默认为 /login.jsp -->
-        <property name="loginUrl" value="/api/account/login.do" />
+        <property name="loginUrl" value="/user/login.do" />
         <!-- 权限拦截 拒绝访问 我们做了json处理 所以不用设置也没关系 -->
         <property name="unauthorizedUrl" value="/index.html" />
 
@@ -35,7 +35,7 @@
                     <bean class="com.bobomico.shiro.filter.JsonDataPermissionsAuthorizationFilter" />
                 </entry>
                 <entry key="logout">
-                    <bean class="com.bobomico.shiro.filter.SystemLogoutFilter" />
+                    <bean class="com.bobomico.shiro.filter.JsonDataLogoutFilter" />
                 </entry>
             </map>
         </property>
@@ -43,6 +43,9 @@
         <!-- filter-chain 过虑器链定义，从上向下顺序执行，一般将/**放在最下边 -->
         <property name="filterChainDefinitions">
             <value>
+                <!-- 注册时检查用户名是否存在 -->
+                /user/check_valid.do = anon
+
                 <!-- 静态资源 -->
                 /assets/** = anon
                 /images/** = anon
@@ -58,7 +61,7 @@
                 /api/account/register.do = anon
 
                 <!-- 注销 -->
-                /logout.do = logout
+                /user/logout.do = logout
 
                 /** = authc
 
@@ -80,6 +83,8 @@
         </property>
     </bean>
 
+    <!-- 二期 DefaultSecurityManager及DefaultWebSecurityManager都继承了SessionsSecurityManager -->
+    <!-- session的管理由DefaultSecurityManager或DefaultWebSecurityManager中的SessionManager来负责 -->
     <!-- securityManager 安全管理器 需要注入realm -->
     <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
         <!-- 自定义认证器 放在realm定义之前 否则realm为null -->
@@ -92,7 +97,7 @@
             </list>
         </property>
         <!-- 定义要使用的session管理器 -->
-        <!-- <property name="sessionManager" ref="sessionManager"/>-->
+         <property name="sessionManager" ref="sessionManager"/>
         <!-- 自定义缓存 todo 以后换redis-->
         <property name="cacheManager" ref="cacheManager"/>
     </bean>
@@ -152,12 +157,15 @@
         <property name="maxAge" value="-1"/>
     </bean>
 
+    <!-- SessionManager -->
+    <!-- shiro提供了完整的会话管理功能，不依赖底层容器，JavaSE应用和JavaEE应用都可以使用。
+            会话管理器管理着应用中所有Subject的会话，包括会话的创建、维护、删除、失效、验证等工作。-->
     <!-- 定义会话管理器的操作 -->
     <bean id="sessionManager"
           class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
-        <!-- 定义的是全局的session会话超时时间，此操作会覆盖web.xml文件中的超时时间配置 -->
+        <!-- 定义的是全局的session会话超时时间 此操作会覆盖web.xml文件中的超时时间配置 -->
         <property name="globalSessionTimeout" value="1000000"/>
-        <!-- 删除所有无效的Session对象，此时的session被保存在了内存里面 -->
+        <!-- 删除所有无效的Session对象 此时的session被保存在了内存里面 -->
         <property name="deleteInvalidSessions" value="true"/>
         <!-- 定义要使用的无效的Session定时调度器 -->
         <property name="sessionValidationScheduler" ref="sessionValidationScheduler"/>

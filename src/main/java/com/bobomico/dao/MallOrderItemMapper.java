@@ -1,6 +1,9 @@
 package com.bobomico.dao;
 
 import com.bobomico.dao.po.MallOrderItem;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface MallOrderItemMapper {
     int deleteByPrimaryKey(Integer id);
@@ -14,4 +17,10 @@ public interface MallOrderItemMapper {
     int updateByPrimaryKeySelective(MallOrderItem record);
 
     int updateByPrimaryKey(MallOrderItem record);
+
+    List<MallOrderItem> getByOrderNoUserId(@Param("orderNo")Long orderNo, @Param("userId")Integer userId);
+
+    List<MallOrderItem> getByOrderNo(@Param("orderNo")Long orderNo);
+
+    void batchInsert(@Param("orderItemList") List<MallOrderItem> orderItemList);
 }

@@ -88,7 +88,7 @@ public class ProductManageController {
      * 商品搜索
      * @param productName 可根据商品名
      * @param productId   可根据商品id
-     * @param pageNum     如果返回多行 可分页展示 页码
+     * @param pageNum     如果返回多行 可分页展示
      * @param pageSize    页面容量
      * @return
      */

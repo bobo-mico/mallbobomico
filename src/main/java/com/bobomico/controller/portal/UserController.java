@@ -1,6 +1,7 @@
 package com.bobomico.controller.portal;
 
 import com.bobomico.common.Const;
+import com.bobomico.common.ResponseCode;
 import com.bobomico.common.ServerResponse;
 import com.bobomico.controller.BaseController;
 import com.bobomico.controller.vo.UserLoginVo;
@@ -9,6 +10,7 @@ import com.bobomico.dao.po.SysUserInf;
 import com.bobomico.dao.po.SysUserLogin;
 import com.bobomico.service.IUserService;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
+import org.apache.shiro.authz.annotation.RequiresGuest;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /*
@@ -33,12 +36,12 @@ import java.util.stream.Collectors;
  * @ClassName: com.ccfit.po.mybatismain
  * @Author: Lion
  * @Date: 2018/6/20  8:13
- * @Description: 控制器就是指挥塔 不包含业务逻辑 只存在调用逻辑
- *                  客户端 - 用户模块
+ * @Description: 客户端 - 用户模块
+ *                  控制器就是指挥塔 不包含业务逻辑 只存在调用逻辑
  * @version: beta
  */
 @RestController
-@RequestMapping("/api/account")
+@RequestMapping("/user/")
 public class UserController extends BaseController {
 
     @Autowired
@@ -49,7 +52,7 @@ public class UserController extends BaseController {
      * @param userLoginVO
      * @return
      */
-    @PostMapping("/register.do")
+    @PostMapping("register.do")
     public ServerResponse<String> register(@RequestBody UserLoginVo userLoginVO) {
         return iUserService.register(userLoginVO);
     }
@@ -61,7 +64,7 @@ public class UserController extends BaseController {
      * @param passwordNew
      * @return
      */
-    @PostMapping("/reset_password.do")
+    @PostMapping("reset_password.do")
     @RequiresPermissions("user:update")
     public ServerResponse<String> resetPassword(
             String passwordOld, String passwordNew, HttpSession session, HttpServletRequest request, HttpServletResponse response){
@@ -78,7 +81,7 @@ public class UserController extends BaseController {
      * @param response
      * @return
      */
-    @GetMapping("/get_user_inf.do")
+    @GetMapping("get_user_inf.do")
     @RequiresAuthentication
     public ServerResponse<SysUserInf> getUserInf(
             HttpSession session, HttpServletRequest request, HttpServletResponse response){
@@ -166,5 +169,33 @@ public class UserController extends BaseController {
         List<SysQuestionAnswer> qs = Arrays.asList(questions);
         qs = qs.stream().peek(x -> x.setSysUserId(sul.getSysUserId())).collect(Collectors.toList());
         return iUserService.insertQuestionAnswer(qs);
+    }
+
+    /**
+     * 检查用户登录状态
+     * @param session
+     * @param request
+     * @param response
+     * @return
+     */
+    @PostMapping("check_login_info.do")
+    @RequiresAuthentication
+    public ServerResponse checkLoginInf(
+            HttpSession session, HttpServletRequest request, HttpServletResponse response){
+        SysUserLogin sul = (SysUserLogin) getUserInfo(session, request, response);
+        if(sul != null){
+            return ServerResponse.createBySuccess(sul);
+        }
+        return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
+    }
+
+    /**
+     * 检查注册名是否存在
+     * @param map username type 仅支持json
+     * @return
+     */
+    @PostMapping("check_valid.do")
+    public ServerResponse<String> checkValid(@RequestBody Map<String, String> map){
+        return iUserService.checkValid(map.get("username"), map.get("type"));
     }
 }

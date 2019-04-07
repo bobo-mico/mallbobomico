@@ -1,16 +1,13 @@
 package com.bobomico.exception;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bobomico.common.ResponseCode;
 import com.bobomico.common.ServerResponse;
 import org.apache.shiro.ShiroException;
 import org.apache.shiro.UnavailableSecurityManagerException;
-import org.apache.shiro.authc.*;
-import org.apache.shiro.authc.pam.UnsupportedTokenException;
 import org.apache.shiro.authz.AuthorizationException;
-import org.apache.shiro.authz.HostUnauthorizedException;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.apache.shiro.authz.permission.InvalidPermissionStringException;
 import org.apache.shiro.cache.CacheException;
 import org.apache.shiro.codec.CodecException;
 import org.apache.shiro.config.ConfigurationException;
@@ -67,27 +64,30 @@ public class WebExceptionHandle {
      * @param response
      * @return
      */
-    // @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({ UnauthenticatedException.class, AuthenticationException.class })
     public String authenticationException(HttpServletRequest request, HttpServletResponse response) {
         logger.info("用户认证异常");
         if (WebUtilsPro.isAjaxRequest(request)) {
-            ServerResponse meg = ServerResponse.createByErrorMessage("请您先登录");
+            ServerResponse meg = ServerResponse.createByErrorCodeMessage(
+                    ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
             writeJson(meg, response);
-            return null;
         } else {
-            return "redirect:/login.html";
+            ServerResponse meg = ServerResponse.createByErrorCodeMessage(
+                    ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
+            writeJson(meg, response);
+            // return "redirect:/login.html";
         }
+        return null;
     }
 
     /**
-     * 授权异常
+     * 授权异常 UNAUTHORIZED 401 未经允许
      * todo 以后对非ajax做出对应的操作
      * @param request
      * @param response
      * @return
      */
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({ UnauthorizedException.class, AuthorizationException.class })
     public String authorizationException(HttpServletRequest request, HttpServletResponse response) {
         logger.info("用户授权异常");
@@ -187,7 +187,6 @@ public class WebExceptionHandle {
             return null;
         }
     }
-
 }
 
 /**

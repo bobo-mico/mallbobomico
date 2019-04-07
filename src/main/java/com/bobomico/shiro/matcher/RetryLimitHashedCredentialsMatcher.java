@@ -88,20 +88,20 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
         // 检查登录次数
         int userRetryCount = userLoginRetryInfo.getAtomicInteger().incrementAndGet();  //查看incrementAndGet()源码 retryCount + 1
         if (userRetryCount > 1 && userRetryCount < Const.shiro.RETRYNUMBER) {
-            try {
+            // try {
                 // 获取本次登录时间
-                SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-                Date now = new Date();
-                now = simpleFormat.parse(simpleFormat.format(now));
-                logger.info("用户本次登录时间: " + now);
-                long currentTime = now.getTime();
-                if(!isFast(userLoginRetryInfo.getLoginTime(), currentTime)){
-                    // 清除用户登录记录
-                    passwordRetryCache.getPasswordRetryCache().remove(username);
-                }
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+                // SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+                // Date now = new Date();
+                // now = simpleFormat.parse(simpleFormat.format(now));
+                // logger.info("用户本次登录时间: " + now);
+                // long currentTime = now.getTime();
+                // if(!isFast(userLoginRetryInfo.getLoginTime(), currentTime)){
+                //     // 清除用户登录记录
+                //     passwordRetryCache.getPasswordRetryCache().remove(username);
+                // }
+            // } catch (ParseException e) {
+            //     e.printStackTrace();
+            // }
         }else if(userRetryCount >= Const.shiro.RETRYNUMBER){
             // 建议用户状态改为常量
             // 修改数据库字段
@@ -169,11 +169,11 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
      * @param now
      * @return
      */
-    public boolean isFast(long first, long now){
-        int minutes = (int) ((now - first) / (1000 * 60));
-        System.out.println("用户距离上次错误时间差: " + minutes);
-        return minutes < 1 ? Boolean.TRUE : Boolean.FALSE;
-    }
+    // public boolean isFast(long first, long now){
+    //     int minutes = (int) ((now - first) / (1000 * 60));
+    //     System.out.println("用户距离上次错误时间差: " + minutes);
+    //     return minutes < 1 ? Boolean.TRUE : Boolean.FALSE;
+    // }
 
     public String getObserverName() {
         return observerName;

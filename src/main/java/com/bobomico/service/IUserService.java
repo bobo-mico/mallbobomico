@@ -46,6 +46,10 @@ public interface IUserService {
 
     // 获取个人详细信息
     ServerResponse<SysUserInf> getInformation(Integer userId);
+
     // 设置密码提示问题和答案
     ServerResponse<String> insertQuestionAnswer(List<SysQuestionAnswer> sysQuestionAnswers);
+
+    // 检验用户名是否存在
+    ServerResponse<String> checkValid(String subject, String type);
 }

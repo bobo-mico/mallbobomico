@@ -28,4 +28,5 @@ public interface MallProductMapper {
     // 根据分类id查询商品
     List<MallProduct> selectByNameAndCategoryIds(
             @Param("productName")String productName,@Param("categoryIdList")List<Integer> categoryIdList);
+
 }

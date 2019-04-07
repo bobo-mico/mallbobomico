@@ -6,6 +6,7 @@ import com.bobomico.dao.po.MallCategory;
 import com.bobomico.service.ICategoryService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -24,9 +25,8 @@ import java.util.Set;
  * @version:
  */
 @Service("iCategoryService")
+@Slf4j  //private Logger logger = LoggerFactory.getLogger(CategoryServiceImpl.class);
 public class CategoryServiceImpl implements ICategoryService {
-
-    private Logger logger = LoggerFactory.getLogger(CategoryServiceImpl.class);
 
     @Autowired
     private MallCategoryMapper categoryMapper;
@@ -83,13 +83,14 @@ public class CategoryServiceImpl implements ICategoryService {
     public ServerResponse<List<MallCategory>> getChildrenParallelCategory(Integer categoryId){
         List<MallCategory> categoryList = categoryMapper.selectCategoryChildrenByParentId(categoryId);
         if(CollectionUtils.isEmpty(categoryList)){
-            logger.info("未找到当前分类的子分类");
+            log.info("未找到当前分类的子分类");
         }
         return ServerResponse.createBySuccess(categoryList);
     }
 
 
     /**
+     * todo 需要重构 效率很低
      * 递归查询本级分类及子分类
      * @param categoryId
      * @return
@@ -97,7 +98,6 @@ public class CategoryServiceImpl implements ICategoryService {
     public ServerResponse<List<Integer>> selectCategoryAndChildrenById(Integer categoryId){
         Set<MallCategory> categorySet = Sets.newHashSet();
         findChildCategory(categorySet,categoryId);
-
 
         List<Integer> categoryIdList = Lists.newArrayList();
         if(categoryId != null){
@@ -109,6 +109,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     /**
+     * todo 需要重构 效率很低
      * 递归查询子分类
      * @param categorySet
      * @param categoryId

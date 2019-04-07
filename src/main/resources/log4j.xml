@@ -41,4 +41,6 @@
         <level value="WARN" />
     </logger>
 
+    <logger name="org.quartz" level="ERROR" />
+
 </log4j:configuration>
