@@ -51,8 +51,8 @@ import java.util.Random;
  * @Description:
  * @version:
  */
-@Service
 @Slf4j
+@Service
 public class OrderServiceImpl implements IOrderService {
 
 

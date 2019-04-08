@@ -29,8 +29,8 @@ import java.util.List;
  * @Description: 购物车 - 服务层
  * @version:
  */
-@Service
 @Slf4j
+@Service
 public class CartServiceImpl implements ICartService {
 
     @Autowired
@@ -220,3 +220,4 @@ public class CartServiceImpl implements ICartService {
         return cartMapper.selectCartProductCheckedStatusByUserId(userId) == 0;
     }
 }
+

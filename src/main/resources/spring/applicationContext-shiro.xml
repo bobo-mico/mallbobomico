@@ -10,8 +10,9 @@
         http://www.springframework.org/schema/context/spring-context-4.1.xsd
         http://www.springframework.org/schema/aop
        http://www.springframework.org/schema/aop/spring-aop.xsd">
-
-    <!-- 需配置的项 -->
+    <!-- 扫描包可以消除报红 -->
+    <context:component-scan base-package="com.bobomico.observer" annotation-config="true" />
+    <!-- 过滤器 -->
     <!-- web.xml中shiro的filter对应的bean -->
     <!-- ShiroFilterFactoryBean是一个工厂bean 真正的filter在下面 -->
     <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
@@ -71,7 +72,26 @@
         </property>
     </bean>
 
-    <!-- 自定义认证器 -->
+    <!-- 安全管理器 -->
+    <!-- 二期 DefaultSecurityManager及DefaultWebSecurityManager都继承了SessionsSecurityManager -->
+    <!-- session的管理由DefaultSecurityManager或DefaultWebSecurityManager中的SessionManager来负责 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!-- 认证器 放在realm定义之前 否则realm为null -->
+        <property name="authenticator" ref="customModularRealmAuthenticator"></property>
+        <!-- realm chain -->
+        <property name="realms">
+            <list>
+                <ref bean="emailRealm" />
+                <ref bean="userPassRealm" />
+            </list>
+        </property>
+        <!-- session管理器 -->
+         <property name="sessionManager" ref="sessionManager"/>
+        <!-- 缓存管理器 todo 以后换redis-->
+        <property name="cacheManager" ref="cacheManager"/>
+    </bean>
+
+    <!-- 认证器 -->
     <bean id="customModularRealmAuthenticator" class="com.bobomico.shiro.authenticator.CustomModularRealmAuthenticator">
         <property name="authenticationStrategy">
             <!-- 认证策略 -->
@@ -81,25 +101,6 @@
             <!-- <bean class="org.apache.shiro.authc.pam.AllSuccessfulStrategy"></bean> -->
             <bean class="org.apache.shiro.authc.pam.AtLeastOneSuccessfulStrategy"></bean>
         </property>
-    </bean>
-
-    <!-- 二期 DefaultSecurityManager及DefaultWebSecurityManager都继承了SessionsSecurityManager -->
-    <!-- session的管理由DefaultSecurityManager或DefaultWebSecurityManager中的SessionManager来负责 -->
-    <!-- securityManager 安全管理器 需要注入realm -->
-    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
-        <!-- 自定义认证器 放在realm定义之前 否则realm为null -->
-        <property name="authenticator" ref="customModularRealmAuthenticator"></property>
-        <!-- realm chain -->
-        <property name="realms">
-            <list>
-                <ref bean="emailRealm" />
-                <ref bean="userPassRealm" />
-            </list>
-        </property>
-        <!-- 定义要使用的session管理器 -->
-         <property name="sessionManager" ref="sessionManager"/>
-        <!-- 自定义缓存 todo 以后换redis-->
-        <property name="cacheManager" ref="cacheManager"/>
     </bean>
 
     <!-- 自定义realm -->
@@ -123,6 +124,7 @@
         <property name="storedCredentialsHexEncoded" value="true" />
     </bean>
 
+    <!-- todo 快废弃的方法 -->
     <!-- 缓存用户登录信息 次数和时间 -->
     <bean id="passwordRetryCache" class="com.bobomico.shiro.cache.PasswordRetryCache">
         <constructor-arg index="0">
@@ -130,19 +132,30 @@
         </constructor-arg>
     </bean>
 
+    <!-- 随后需要定义有一个会话的DAO处理，指的是你的会话的缓存位置，本次暂时将所有的会话数据保存在内存里面。
+         会话缓存处理：org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO -->
+    <!-- 自定义Session DAO -->
+<!--    <bean id="sessionDAO" class="com.bobomico.shiro.cachemanager.dao.ShiroSessionDAO">-->
+<!--        &lt;!&ndash; 设置session缓存的名字，这个名字可以任意 &ndash;&gt;-->
+<!--        <property name="activeSessionsCacheName" value="bobomico-activeSession"/>-->
+<!--        &lt;!&ndash; 定义该Session DAO操作中所使用的ID生成器 &ndash;&gt;-->
+<!--        <property name="sessionIdGenerator" ref="sessionIdGenerator"/>-->
+<!--    </bean>-->
+
+    <!-- 重写sessionDao -->
+    <bean id = "shiroSessionRepository" class = "com.bobomico.shiro.cachemanager2.session.JedisShiroSessionRepository">
+        <property name = "redisManager" ref = "redisManager"/>
+    </bean>
+    <bean id = "sessionDAO" class = "com.bobomico.shiro.cachemanager2.session.CustomShiroSessionDao">
+        <!-- 设置session缓存的名字，这个名字可以任意 -->
+<!--        <property name="activeSessionsCacheName" value="bobomico-activeSession"/>-->
+        <property name = "shiroSessionRepository" ref = "shiroSessionRepository"/>
+        <property name = "sessionIdGenerator" ref = "sessionIdGenerator"/>
+    </bean>
+
     <!-- 配置一个属于自己的Session ID生成器 -->
     <!-- 自定义Session ID生成管理器 -->
     <bean id="sessionIdGenerator" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator" />
-
-    <!-- 随后需要定义有一个会话的DAO处理，指的是你的会话的缓存位置，本次暂时将所有的会话数据保存在内存里面。
-         会话保存处理：org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO -->
-    <!-- 配置Session DAO的操作处理 -->
-    <bean id="sessionDAO" class="org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO">
-        <!-- 设置session缓存的名字，这个名字可以任意 -->
-        <!--<property name="activeSessionsCacheName" value="shiro-activeSessionCache"/>-->
-        <!-- 定义该Session DAO操作中所使用的ID生成器 -->
-        <property name="sessionIdGenerator" ref="sessionIdGenerator"/>
-    </bean>
 
     <!-- 现在只是定义了缓存所需要的组件，但是并没有定义session与客户端的之间的联系，
             为了进行有效的session管理所以还需要建立有一个Cookie的操作模版。 -->
@@ -189,6 +202,24 @@
     <!-- 缓存管理器 使用Ehcache实现 -->
     <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
         <property name="cacheManagerConfigFile" value="classpath:shiro/ehcache.xml" />
+    </bean>
+
+    <!-- 重写cache -->
+    <!-- redisManager-->
+    <bean id ="redisManager" class = "com.bobomico.shiro.cachemanager2.util.RedisManager">
+        <property name="host" value="127.0.0.1"/>
+        <property name="port" value="6379"/>
+        <property name="expire" value="1800"/>
+        <!--<property name ="password" value=""/>-->
+        <!--<property name ="timeout" value="0"/>-->
+    </bean>
+
+    <!-- shiro缓存 -->
+    <bean id = "shrioCacheManager" class ="com.bobomico.shiro.cachemanager2.cache.JedisShiroCacheManager">
+        <property name ="redisManager" ref = "redisManager"/>
+    </bean>
+    <bean id = "shiroJedisManager" class ="com.bobomico.shiro.cachemanager2.cache.CustomShiroCacheManager">
+        <property name ="shrioCacheManager" ref = "shrioCacheManager"/>
     </bean>
 
 </beans>

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * @Description:
  * @version:
  */
-@Component
+@Component("userStatusSubject")
 public class UserStatusSubject extends Subject{
 
     // 发布内容 用户锁定状态

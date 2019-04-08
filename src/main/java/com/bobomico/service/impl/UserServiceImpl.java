@@ -1,7 +1,6 @@
 package com.bobomico.service.impl;
 
 import com.bobomico.common.Const;
-import com.bobomico.common.ResponseCode;
 import com.bobomico.common.ServerResponse;
 import com.bobomico.common.TokenCache;
 import com.bobomico.controller.vo.UserLoginVo;
@@ -30,7 +29,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service
+@Service("userServiceImpl")
 public class UserServiceImpl implements IUserService {
 
     @Autowired

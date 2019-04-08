@@ -20,8 +20,8 @@ import java.util.UUID;
  * @Description: 图片上传服务
  * @version:
  */
-@Service
 @Slf4j
+@Service
 public class FileServiceImpl implements IFileService {
 
     public String upload(MultipartFile file, String path){

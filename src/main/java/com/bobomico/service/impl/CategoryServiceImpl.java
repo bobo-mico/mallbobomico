@@ -24,8 +24,8 @@ import java.util.Set;
  * @Description: 商品分类管理
  * @version:
  */
-@Service("iCategoryService")
 @Slf4j  //private Logger logger = LoggerFactory.getLogger(CategoryServiceImpl.class);
+@Service("iCategoryService")
 public class CategoryServiceImpl implements ICategoryService {
 
     @Autowired

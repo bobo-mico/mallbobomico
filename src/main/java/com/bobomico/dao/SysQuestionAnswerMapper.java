@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface SysQuestionAnswerMapper {
+
     int deleteByPrimaryKey(Integer id);
 
     int insert(SysQuestionAnswer record);
