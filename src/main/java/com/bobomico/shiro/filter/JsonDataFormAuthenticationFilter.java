@@ -17,6 +17,8 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.apache.shiro.web.filter.authc.FormAuthenticationFilter;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
@@ -110,7 +112,6 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
         }
         try {
             Subject subject = getSubject(request, response);
-
             /**
              * think about
              *      先前的代码在提交之前保存了session状态 认证之后注销了session 导致session中保存的
@@ -121,29 +122,6 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
             System.out.println("认证前SESSION ID = " + SecurityUtils.getSubject().getSession().getId());
             // 提交认证 如果错误会抛出异常并执行catch
             subject.login(token);
-
-            // 获取session域的数据
-            Session session = subject.getSession();
-            final LinkedHashMap<Object, Object> attributes = new LinkedHashMap();
-            final Collection<Object> keys = session.getAttributeKeys();
-            for (Object key : keys) {
-                final Object value = session.getAttribute(key);
-                if (value != null) {
-                    attributes.put(key, value);
-                }
-            }
-
-            // 状态保存后注销当前session
-            session.stop();
-
-            // 获取新的session
-            session = subject.getSession();
-
-            // 复制session数据
-            for (final Object key : attributes.keySet()){
-                session.setAttribute(key, attributes.get(key));
-            }
-
             return onLoginSuccess(token, subject, request, response);
         } catch (AuthenticationException e) {
             return onLoginFailure(token, e, request, response);
@@ -165,12 +143,12 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
-        // 能正常获取用户登录状态了
-        Session session = subject.getSession(false);
-        if(session != null){
-            boolean flag = (boolean) session.getAttribute(DefaultSubjectContext.AUTHENTICATED_SESSION_KEY);
-            System.out.println(flag);
-        }
+        // // 获取session
+        // Session session = subject.getSession(false);
+        // if(session != null){
+        //     boolean flag = (boolean) session.getAttribute(DefaultSubjectContext.AUTHENTICATED_SESSION_KEY);
+        //     System.out.println(flag);
+        // }
 
         System.out.println("认证成功时SESSION ID = " + SecurityUtils.getSubject().getSession().getId());
         System.out.println("用户名：" + SecurityUtils.getSubject().getPrincipal());

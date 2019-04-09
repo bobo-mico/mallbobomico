@@ -1,31 +1,38 @@
-package com.bobomico.shiro.cachemanager2.cache;
+package com.bobomico.shiro.cachemanager2.cachemanager;
 
 import com.bobomico.shiro.cachemanager2.util.RedisManager;
+import com.bobomico.shiro.cachemanager2.util.SerializeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.cache.Cache;
 import org.apache.shiro.cache.CacheException;
 import org.apache.shiro.util.CollectionUtils;
-import org.crazycake.shiro.SerializeUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @ClassName: com.bobomico.shiro.cachemanager2.mallbobomico
  * @Author: DELL
  * @Date: 2019/4/8  17:55
- * @Description:
+ * @Description: 必须实现Cache接口才能作为shiro的缓存管理器
+ *                  在这里修改cookie的实现
  * @version:
  */
 @Slf4j
-public class JedisShiroCache<K, V> implements Cache<K, V> {
+public class RedisShiroCache<K, V> implements Cache<K, V> {
 
     private final String REDIS_SHIRO_CACHE = "shiro-cache:";
 
+    // redisUtil
     private RedisManager cache;
 
     private String name;
 
-    public JedisShiroCache(String name, RedisManager jedisManager) {
+    public RedisShiroCache(String name, RedisManager jedisManager) {
         this.name = name;
         this.cache = jedisManager;
     }
@@ -37,7 +44,6 @@ public class JedisShiroCache<K, V> implements Cache<K, V> {
                 return null;
             } else {
                 byte[] rawValue = cache.get(getByteKey(key));
-                @SuppressWarnings("unchecked")
                 V value = (V) SerializeUtils.deserialize(rawValue);
                 return value;
             }
@@ -86,7 +92,6 @@ public class JedisShiroCache<K, V> implements Cache<K, V> {
         return keys().size();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Set<K> keys() {
         try {
@@ -112,7 +117,6 @@ public class JedisShiroCache<K, V> implements Cache<K, V> {
             if (!CollectionUtils.isEmpty(keys)) {
                 List<V> values = new ArrayList<V>(keys.size());
                 for (byte[] key : keys) {
-                    @SuppressWarnings("unchecked")
                     V value = get((K) key);
                     if (value != null) {
                         values.add(value);

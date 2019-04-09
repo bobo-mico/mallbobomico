@@ -8,7 +8,8 @@ import java.io.*;
  * @ClassName: com.bobomico.shiro.cachemanager2.util.mallbobomico
  * @Author: DELL
  * @Date: 2019/4/8  18:03
- * @Description:
+ * @Description: 序列化和反序列化工具
+ *                  可用 com.bobomico.util.JsonUtil 替代
  * @version:
  */
 @Slf4j

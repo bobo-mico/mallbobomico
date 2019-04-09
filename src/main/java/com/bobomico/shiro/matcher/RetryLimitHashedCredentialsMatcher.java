@@ -22,6 +22,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -123,19 +124,52 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
         if (super.doCredentialsMatch(token, info)) {
             // 如果正确 从缓存中将用户登录计数清除
             passwordRetryCache.getPasswordRetryCache().remove(username);
+
             /**
-             * 从缓存中清理已经存在的session 达到强制下线的目的
+             * 时机: 认证之后 session缓存之前
+             * 目的: 遍历redis缓存 查看用户是否已经存在登录信息
+             * 如果已经存在 从缓存中清理已经存在的session 达到强制下线的目的
              * 前端要想办法通知被强制下线的用户
              */
-            // DefaultWebSecurityManager securityManager = (DefaultWebSecurityManager) SecurityUtils.getSecurityManager();
-            // DefaultWebSessionManager sessionManager = (DefaultWebSessionManager)securityManager.getSessionManager();
-            // Collection<Session> sessions = sessionManager.getSessionDAO().getActiveSessions();//获取当前已登录的用户session列表
+            DefaultWebSecurityManager securityManager = (DefaultWebSecurityManager)SecurityUtils.getSecurityManager();
+            DefaultWebSessionManager sessionManager = (DefaultWebSessionManager)securityManager.getSessionManager();
+            Session session = SecurityUtils.getSubject().getSession();
+            Session result = sessionManager.getSessionDAO().readSession(session.getId());
+            if(result != null){
+                if(token.getPrincipal().equals(String.valueOf(session.getAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY)))) {
+                    sessionManager.getSessionDAO().delete(session);
+                }
+            }
+
+            // // 获取当前已登录的用户session列表
+            // Collection<Session> sessions = sessionManager.getSessionDAO().getActiveSessions();
             // for(Session session : sessions){
             //     // 清除该用户其他在线的session
             //     if(token.getPrincipal().equals(String.valueOf(session.getAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY)))) {
             //         sessionManager.getSessionDAO().delete(session);
             //     }
             // }
+            // SecurityUtils.getSubject().getSession();
+            // // 获取session域的数据
+            // Session session = subject.getSession();
+
+            final LinkedHashMap<Object, Object> attributes = new LinkedHashMap();
+            final Collection<Object> keys = session.getAttributeKeys();
+            for (Object key : keys) {
+                final Object value = session.getAttribute(key);
+                if (value != null) {
+                    attributes.put(key, value);
+                }
+            }
+            // 状态保存后注销当前session
+            session.stop();
+            // 获取新的session
+            session = SecurityUtils.getSubject().getSession();
+            // 复制session数据
+            for (final Object key : attributes.keySet()){
+                session.setAttribute(key, attributes.get(key));
+            }
+
             return Boolean.TRUE;
         }else{
             switch(userRetryCount){
@@ -162,18 +196,6 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
             logger.info("该用户登录次数已重置: " + username);
         }
     }
-
-    /**
-     * 距离第一次登录时间小于2分钟返回true
-     * @param first
-     * @param now
-     * @return
-     */
-    // public boolean isFast(long first, long now){
-    //     int minutes = (int) ((now - first) / (1000 * 60));
-    //     System.out.println("用户距离上次错误时间差: " + minutes);
-    //     return minutes < 1 ? Boolean.TRUE : Boolean.FALSE;
-    // }
 
     public String getObserverName() {
         return observerName;

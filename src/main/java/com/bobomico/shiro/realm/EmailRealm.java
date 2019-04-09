@@ -114,6 +114,14 @@ public class EmailRealm extends AuthorizingRealm {
     }
 
     /**
+     * 清除缓存
+     */
+    // public void clearCached(){
+    //     PrincipalCollection principal = SecurityUtils.getSubject().getPrincipals();
+    //     super.clearCache(principal);
+    // }
+
+    /**
      * 让Realm支持token的子类或相同 跳转到getAuthenticationTokenClass查看源码
      * @param var1
      * @return

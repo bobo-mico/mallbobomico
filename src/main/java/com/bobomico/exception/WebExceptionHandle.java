@@ -3,6 +3,7 @@ package com.bobomico.exception;
 import com.alibaba.fastjson.JSONObject;
 import com.bobomico.common.ResponseCode;
 import com.bobomico.common.ServerResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.ShiroException;
 import org.apache.shiro.UnavailableSecurityManagerException;
 import org.apache.shiro.authz.AuthorizationException;
@@ -53,10 +54,10 @@ import java.io.PrintWriter;
  *                              不同注解的异常类型 请查阅源码 AopAllianceAnnotationsAuthorizingMethodInterceptor
  * @version:
  */
+@Slf4j
 @ControllerAdvice
 @ResponseBody
 public class WebExceptionHandle {
-    private static Logger logger = LoggerFactory.getLogger(WebExceptionHandle.class);
 
     /**
      * 认证异常
@@ -66,7 +67,7 @@ public class WebExceptionHandle {
      */
     @ExceptionHandler({ UnauthenticatedException.class, AuthenticationException.class })
     public String authenticationException(HttpServletRequest request, HttpServletResponse response) {
-        logger.info("用户认证异常");
+        log.info("用户认证异常");
         if (WebUtilsPro.isAjaxRequest(request)) {
             ServerResponse meg = ServerResponse.createByErrorCodeMessage(
                     ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
@@ -90,7 +91,7 @@ public class WebExceptionHandle {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({ UnauthorizedException.class, AuthorizationException.class })
     public String authorizationException(HttpServletRequest request, HttpServletResponse response) {
-        logger.info("用户授权异常");
+        log.info("用户授权异常");
         if (WebUtilsPro.isAjaxRequest(request)) {
             // 输出JSON
             ServerResponse meg = ServerResponse.createByErrorMessage("您无权进行该操作");
@@ -99,6 +100,29 @@ public class WebExceptionHandle {
         } else {
             // 输出JSON
             ServerResponse meg = ServerResponse.createByErrorMessage("您无权进行该操作");
+            writeJson(meg, response);
+            return null;
+        }
+    }
+
+    /**
+     * 超时异常 UnknownSessionException 您已超时请重新登陆
+     * @param request
+     * @param response
+     * @return
+     */
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler({ UnknownSessionException.class })
+    public String outTimeException(HttpServletRequest request, HttpServletResponse response) {
+        log.info("登录超时");
+        if (WebUtilsPro.isAjaxRequest(request)) {
+            // 输出JSON
+            ServerResponse meg = ServerResponse.createByErrorMessage("您的登录已经超时 请重新登陆");
+            writeJson(meg, response);
+            return null;
+        } else {
+            // 输出JSON
+            ServerResponse meg = ServerResponse.createByErrorMessage("您的登录已经超时 请重新登陆");
             writeJson(meg, response);
             return null;
         }
@@ -166,7 +190,6 @@ public class WebExceptionHandle {
             InvalidSessionException.class,
             SessionException.class,
             StoppedSessionException.class,
-            UnknownSessionException.class,
             DisabledSessionException.class,
             ExecutionException.class,
             InstantiationException.class,
@@ -174,7 +197,7 @@ public class WebExceptionHandle {
             UnknownClassException.class
     })
     public String authorizationException2(HttpServletRequest request, HttpServletResponse response) {
-        logger.info("用户授权异常");
+        log.info("用户授权异常");
         if (WebUtilsPro.isAjaxRequest(request)) {
             // 输出JSON
             ServerResponse meg = ServerResponse.createByErrorMessage("异常大礼包");
@@ -197,4 +220,5 @@ public class WebExceptionHandle {
  *  DisabledAccountException 帐号已被禁用
  *  ExpiredCredentialsException 帐号已过期
  *  UnknownAccountException 帐号不存在
+ *  UnknownSessionException 未知的session ( 通常在超时之前被从缓存中删除的原因
  */

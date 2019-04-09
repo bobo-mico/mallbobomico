@@ -65,7 +65,7 @@ public class UserController extends BaseController {
      * @return
      */
     @PostMapping("reset_password.do")
-    @RequiresPermissions("user:update")
+    @RequiresPermissions("user:create")
     public ServerResponse<String> resetPassword(
             String passwordOld, String passwordNew, HttpSession session, HttpServletRequest request, HttpServletResponse response){
         SysUserLogin sysUserLogin = (SysUserLogin) getUserInfo(session, request, response);

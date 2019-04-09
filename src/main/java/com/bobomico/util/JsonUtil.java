@@ -11,20 +11,15 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import java.text.SimpleDateFormat;
 
 /**
  * @ClassName: com.bobomico.util.mallbobomico
  * @Author: DELL
  * @Date: 2019/4/8  3:52
- * @Description:
+ * @Description: 序列化工具
  * @version:
  */
 @Slf4j
