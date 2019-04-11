@@ -1,6 +1,6 @@
 package com.bobomico.shiro.cachemanager2.cachemanager;
 
-import com.bobomico.shiro.cachemanager2.util.RedisManager;
+import com.bobomico.redis.utils.RedisUtil;
 import com.bobomico.shiro.cachemanager2.util.SerializeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.cache.Cache;
@@ -18,32 +18,54 @@ import java.util.Set;
  * @ClassName: com.bobomico.shiro.cachemanager2.mallbobomico
  * @Author: DELL
  * @Date: 2019/4/8  17:55
- * @Description: 必须实现Cache接口才能作为shiro的缓存管理器
- *                  在这里修改cookie的实现
+ * @Description: 要为shiro提供缓存服务必须实现Cache接口
+ *               在这里可以定义sessionDAO的逻辑
+ *               该类可以有多个实例，为不同的realm提供服务
+ *               K 为String的name
+ *               V 为reids实现
  * @version:
  */
 @Slf4j
 public class RedisShiroCache<K, V> implements Cache<K, V> {
 
-    private final String REDIS_SHIRO_CACHE = "shiro-cache:";
+    // redis中的缓存前缀
+    private final String SHIRO_CACHE_TOKEN_PREFIX = "shiro-cache:";
+
+    // todo 升级为SpringBoot时使用
+    // @Autowired
+    // private RedisTemplate<K, V> redisTemplate;
 
     // redisUtil
-    private RedisManager cache;
+    // private RedisManager cache;
 
     private String name;
 
-    public RedisShiroCache(String name, RedisManager jedisManager) {
+    // public RedisShiroCache(String name, RedisManager jedisManager) {
+    //     this.name = name;
+    //     this.cache = jedisManager;
+    // }
+
+    public RedisShiroCache(String name) {
         this.name = name;
-        this.cache = jedisManager;
     }
 
+    /**
+     * 从缓存中获取值
+     * @param key
+     * @return
+     * @throws CacheException
+     */
     @Override
     public V get(K key) throws CacheException {
         try {
             if (key == null) {
                 return null;
             } else {
-                byte[] rawValue = cache.get(getByteKey(key));
+                // 原始数据
+                // byte[] rawValue = cache.get(getByteKey(key));
+
+                // 原始数据
+                byte[] rawValue = RedisUtil.get(getByteKey(key));
                 V value = (V) SerializeUtils.deserialize(rawValue);
                 return value;
             }
@@ -52,39 +74,65 @@ public class RedisShiroCache<K, V> implements Cache<K, V> {
         }
     }
 
+    /**
+     * 添加缓存
+     * @param key
+     * @param value
+     * @return
+     * @throws CacheException
+     */
     @Override
     public V put(K key, V value) throws CacheException {
         try {
-            cache.set(getByteKey(key), SerializeUtils.serialize(value));
+            RedisUtil.set(getByteKey(key), SerializeUtils.serialize(value));
             return value;
         } catch (Throwable t) {
             throw new CacheException(t);
         }
     }
 
+    /**
+     * 从缓存中删除
+     * @param key
+     * @return
+     * @throws CacheException
+     */
     @Override
     public V remove(K key) throws CacheException {
         try {
+            // 先查询
             V previous = get(key);
-            cache.del(getByteKey(key));
+            if(previous == null){
+                return null;
+            }
+            // 删除并返回该对象
+            RedisUtil.del(getByteKey(key));
             return previous;
         } catch (Throwable t) {
             throw new CacheException(t);
         }
     }
 
+    /**
+     * 清理缓存
+     * @throws CacheException
+     */
     @Override
     public void clear() throws CacheException {
         try {
-            String preKey = this.REDIS_SHIRO_CACHE + "*";
+            String preKey = this.SHIRO_CACHE_TOKEN_PREFIX + "*";
             byte[] keysPattern = preKey.getBytes();
-            cache.del(keysPattern);
-            cache.flushDB();
+            RedisUtil.del(keysPattern);
+            // RedisUtil.flushDB();
         } catch (Throwable t) {
             throw new CacheException(t);
         }
     }
 
+    /**
+     * 缓存统计
+     * @return
+     */
     @Override
     public int size() {
         if (keys() == null)
@@ -92,14 +140,19 @@ public class RedisShiroCache<K, V> implements Cache<K, V> {
         return keys().size();
     }
 
+    /**
+     * 查询所有key
+     * @return
+     */
     @Override
     public Set<K> keys() {
         try {
-            Set<byte[]> keys = cache.keys(this.REDIS_SHIRO_CACHE + "*");
-            if (CollectionUtils.isEmpty(keys)) {
+            Set<byte[]> keys = RedisUtil.keys(this.SHIRO_CACHE_TOKEN_PREFIX + "*");
+            if(CollectionUtils.isEmpty(keys)) {
                 return Collections.emptySet();
-            } else {
-                Set<K> newKeys = new HashSet<K>();
+            }else{
+                // 强转
+                Set<K> newKeys = new HashSet();
                 for (byte[] key : keys) {
                     newKeys.add((K) key);
                 }
@@ -110,19 +163,23 @@ public class RedisShiroCache<K, V> implements Cache<K, V> {
         }
     }
 
+    /**
+     * 查询所有value
+     * @return
+     */
     @Override
     public Collection<V> values() {
         try {
-            Set<byte[]> keys = cache.keys(this.REDIS_SHIRO_CACHE + "*");
+            Set<byte[]> keys = RedisUtil.keys(this.SHIRO_CACHE_TOKEN_PREFIX + "*");
             if (!CollectionUtils.isEmpty(keys)) {
-                List<V> values = new ArrayList<V>(keys.size());
+                List<V> values = new ArrayList(keys.size());
                 for (byte[] key : keys) {
                     V value = get((K) key);
                     if (value != null) {
                         values.add(value);
                     }
                 }
-                return Collections.unmodifiableList(values);
+                return Collections.unmodifiableList(values);    // unmodifiableList 不可变集合
             } else {
                 return Collections.emptyList();
             }
@@ -146,13 +203,13 @@ public class RedisShiroCache<K, V> implements Cache<K, V> {
     }
 
     /**
-     * 获得byte[]型的key
+     * 小工具 - 获得byte[]型的key
      * @param key
      * @return
      */
     private byte[] getByteKey(K key) {
         if (key instanceof String) {
-            String preKey = this.REDIS_SHIRO_CACHE + getName() + ":" + key;
+            String preKey = this.SHIRO_CACHE_TOKEN_PREFIX + getName() + ":" + key;
             return preKey.getBytes();
         } else {
             return SerializeUtils.serialize(key);

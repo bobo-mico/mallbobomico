@@ -23,8 +23,7 @@
             timeToLiveSeconds="120"
             overflowToDisk="false"
             diskPersistent="false"
-            diskExpiryThreadIntervalSeconds="120"
-    />
+            diskExpiryThreadIntervalSeconds="120" />
 
     <cache name="activeSessionCache"
            maxElementsInMemory="10000"
@@ -34,6 +33,19 @@
            diskExpiryThreadIntervalSeconds="600"/>
 
     <cache name="shiro.authorizationCache"
+           maxElementsInMemory="100"
+           eternal="false"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+    <cache name="authorizationCache"
+           maxElementsInMemory="100"
+           eternal="false"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+    <!-- 认证缓存 -->
+    <cache name="authenticationCache"
            maxElementsInMemory="100"
            eternal="false"
            timeToLiveSeconds="600"

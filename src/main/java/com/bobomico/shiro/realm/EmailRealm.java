@@ -6,7 +6,9 @@ import com.bobomico.dao.po.SysPermission;
 import com.bobomico.dao.po.SysRole;
 import com.bobomico.dao.po.SysUserLogin;
 import com.bobomico.service.IUserService;
+import com.bobomico.shiro.cachemanager2.util.CustomSimpleByteSource;
 import com.bobomico.shiro.token.EmailPasswordToken;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationException;
@@ -28,8 +30,9 @@ import java.util.stream.Collectors;
  * @Author: DELL
  * @Date: 2019/3/28  2:54
  * @Description: 自定义Realm
- * @version:
+ * @version:    AuthenticatingRealm getAuthenticationInfo
  */
+@Slf4j
 public class EmailRealm extends AuthorizingRealm {
 
     @Autowired
@@ -52,6 +55,7 @@ public class EmailRealm extends AuthorizingRealm {
      */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken email) throws AuthenticationException {
+        System.out.println("realm查询认证信息");
         SysUserLogin sysUserLogin = null;
 
         EmailPasswordToken token = (EmailPasswordToken) email;
@@ -77,7 +81,7 @@ public class EmailRealm extends AuthorizingRealm {
 
         // 如果查询到就返回认证信息 AuthenticationInfo(用户认证信息)
         return new SimpleAuthenticationInfo(
-                sysUserLogin, password, ByteSource.Util.bytes(sysUserLogin.getSalt()), this.getName());
+                sysUserLogin, password, new CustomSimpleByteSource(sysUserLogin.getSalt()), this.getName());
     }
 
     /**
@@ -87,7 +91,7 @@ public class EmailRealm extends AuthorizingRealm {
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
-
+        System.out.println("email realm检索权限");
         SysUserLogin sysUserLogin = (SysUserLogin) principalCollection.getPrimaryPrincipal();
 
         // 检索用户权限
@@ -131,4 +135,5 @@ public class EmailRealm extends AuthorizingRealm {
         // return token != null && getAuthenticationTokenClass().isAssignableFrom(token.getClass());
         return var1 instanceof EmailPasswordToken;
     }
+
 }

@@ -34,6 +34,7 @@ public class CustomShiroSessionDao extends AbstractSessionDAO {
      */
     @Override
     protected Serializable doCreate(Session session) {
+        log.info("DDDAO-doCreate");
         // 通过ID生成器生成sessionID
         Serializable sessionId = this.generateSessionId(session);
         // 将sessionID装配到session
@@ -49,6 +50,7 @@ public class CustomShiroSessionDao extends AbstractSessionDAO {
      */
     @Override
     public void delete(Session session) {
+        log.info("DDDAO-delete");
         if (session == null) {
             log.error("session or session id is null");
             return;
@@ -65,6 +67,7 @@ public class CustomShiroSessionDao extends AbstractSessionDAO {
      */
     @Override
     public void update(Session session) throws UnknownSessionException {
+        log.info("DDDAO-update");
         getSessionDAO().saveSession(session);
     }
 
@@ -75,6 +78,7 @@ public class CustomShiroSessionDao extends AbstractSessionDAO {
      */
     @Override
     protected Session doReadSession(Serializable sessionId) {
+        log.info("DDDAO-doReadSession");
         return getSessionDAO().getSession(sessionId);
     }
 
@@ -84,21 +88,7 @@ public class CustomShiroSessionDao extends AbstractSessionDAO {
      */
     @Override
     public Collection<Session> getActiveSessions() {
+        log.info("DDDAO-getActiveSessions");
         return getSessionDAO().getAllSessions();
-    }
-
-    /**
-     * 更新sessionID 防止会话固定攻击
-     * @param session
-     * @return
-     */
-    public Serializable updateSessionId(Session session) {
-        // 通过ID生成器生成sessionID
-        Serializable sessionId = this.generateSessionId(session);
-        // 将sessionID装配到session
-        this.assignSessionId(session, sessionId);
-        // 缓存session到Redis
-        getSessionDAO().saveSession(session);
-        return sessionId;
     }
 }

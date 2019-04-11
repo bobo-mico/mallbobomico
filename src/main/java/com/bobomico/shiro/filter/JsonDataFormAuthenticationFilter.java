@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -89,6 +90,16 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
      * @throws Exception
      */
     protected boolean executeLogin(ServletRequest request, ServletResponse response) throws Exception {
+        // // 通过请求直接获取request中包含的所有的cookie
+        // Cookie[] cookies = ((HttpServletRequest)request).getCookies();
+        // // 遍历所有的cookie,然后根据cookie的key值来获取value值
+        // if (cookies!=null) {
+        //     for (Cookie cookie : cookies) {
+        //         System.out.println(cookie.getName());
+        //         System.out.println(cookie.getValue());
+        //     }
+        // }
+
         // 是否是Ajax请求
         if(ajaxTool.isAjax(request)){
             try {
@@ -120,8 +131,29 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
              *      现将逻辑修正为 在执行认证之后 保存状态 注销session 复制状态 问题解决
              */
             System.out.println("认证前SESSION ID = " + SecurityUtils.getSubject().getSession().getId());
+
             // 提交认证 如果错误会抛出异常并执行catch
             subject.login(token);
+
+            // 防止Session fixation
+            Session session = subject.getSession();
+            final LinkedHashMap<Object, Object> attributes = new LinkedHashMap();
+            final Collection<Object> keys = session.getAttributeKeys();
+            for (Object key : keys) {
+                final Object value = session.getAttribute(key);
+                if (value != null) {
+                    attributes.put(key, value);
+                }
+            }
+            // 状态保存后注销当前session
+            session.stop();
+            // 获取新的session
+            session = SecurityUtils.getSubject().getSession();
+            // 复制session数据
+            for (final Object key : attributes.keySet()){
+                session.setAttribute(key, attributes.get(key));
+            }
+
             return onLoginSuccess(token, subject, request, response);
         } catch (AuthenticationException e) {
             return onLoginFailure(token, e, request, response);

@@ -12,6 +12,7 @@
        http://www.springframework.org/schema/aop/spring-aop.xsd">
     <!-- 扫描包可以消除报红 -->
     <context:component-scan base-package="com.bobomico.observer" annotation-config="true" />
+    <context:component-scan base-package="com.bobomico.shiro.cachemanager2" annotation-config="true" />
 
     <!-- 过滤器 -->
     <!-- web.xml中shiro的filter对应的bean -->
@@ -86,12 +87,12 @@
                 <ref bean="userPassRealm" />
             </list>
         </property>
-        <!-- session管理器 -->
-        <property name="sessionManager" ref="sessionManager"/>
-        <!-- 缓存管理器 - EhCache todo 以后换redis-->
-        <!-- <property name="cacheManager" ref="cacheManager"/> -->
+        <!-- 缓存管理器 - EhCache 如果不适用缓存管理器 只要碰到需要权限就会调用realm 一次访问可能调用n次 -->
+<!--         <property name="cacheManager" ref="ehCacheManager"/>-->
         <!-- 缓存管理器 - Redis -->
         <property name="cacheManager" ref="customCacheManager"/>
+        <!-- session管理器 务必保证session管理器中使用的缓存技术与安全管理器中配置的缓存技术一致 -->
+        <property name="sessionManager" ref="sessionManager"/>
     </bean>
 
     <!-- 认证器 -->
@@ -110,10 +111,20 @@
     <bean id="emailRealm" class="com.bobomico.shiro.realm.EmailRealm">
         <!-- 凭证匹配器 其中有关于加密算法和加密次数等重要信息 -->
         <property name="credentialsMatcher" ref="retryLimitHashedCredentialsMatcher"/>
+        <property name="cachingEnabled" value="true" />
+        <property name="authenticationCachingEnabled" value="true" />
+        <property name="authenticationCacheName" value="authenticationCache" />
+        <property name="authorizationCachingEnabled" value="true" />
+        <property name="authorizationCacheName" value="authorizationCache" />
     </bean>
     <bean id="userPassRealm" class="com.bobomico.shiro.realm.UserPassRealm">
         <!-- 凭证匹配器 其中有关于加密算法和加密次数等重要信息 -->
         <property name="credentialsMatcher" ref="retryLimitHashedCredentialsMatcher"/>
+        <property name="cachingEnabled" value="true" />
+        <property name="authenticationCachingEnabled" value="true" />
+        <property name="authenticationCacheName" value="authenticationCache" />
+        <property name="authorizationCachingEnabled" value="true" />
+        <property name="authorizationCacheName" value="authorizationCache" />
     </bean>
 
     <!-- 凭证匹配器 -->
@@ -161,35 +172,15 @@
         <!-- sessionId生成器 -->
         <property name = "sessionIdGenerator" ref="sessionIdGenerator"/>
         <!-- sessionDAO操作 -->
-        <property name = "sessionDAO" ref="shiroSessionRepository"/>
-        <!-- 可配置session的名字 -->
-        <!-- <property name="activeSessionsCacheName" value="bobomico-activeSession"/> -->
-    </bean>
-    <!-- 注入了redis的连接和操作 -->
-    <bean id = "shiroSessionRepository" class = "com.bobomico.shiro.cachemanager2.dao.impl.JedisIShiroSessionRepositoryImpl">
-        <property name = "redisManager" ref="redisManager"/>
+        <property name = "sessionDAO" ref="jedisIShiroSessionRepositoryImpl"/>
     </bean>
 
     <!-- sessionID生成器 可自定义 -->
     <bean id="sessionIdGenerator" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator" />
 
-    <!-- 重写缓存 -->
-    <!-- redisManager 就是redisUtil 可在后期更换 -->
-    <bean id ="redisManager" class = "com.bobomico.shiro.cachemanager2.util.RedisManager">
-        <property name="host" value="127.0.0.1"/>
-        <property name="port" value="6379"/>
-        <property name="expire" value="1800"/>
-        <!--<property name ="password" value=""/>-->
-        <!--<property name ="timeout" value="0"/>-->
-    </bean>
-
-    <!-- 缓存管理器 -->
+    <!-- 缓存管理器 实现了CacheManager -->
     <bean id = "customCacheManager" class ="com.bobomico.shiro.cachemanager2.cachemanager.CustomCacheManager">
-        <property name ="shrioCacheManager" ref="redisCacheManager"/>
-    </bean>
-    <!-- redis缓存实现 -->
-    <bean id = "redisCacheManager" class="com.bobomico.shiro.cachemanager2.dao.impl.RedisCacheManagerImpl">
-        <property name ="redisManager" ref="redisManager"/>
+        <property name ="shrioCacheManager" ref="redisCacheManagerImpl"/>
     </bean>
 
     <!-- 现在只是定义了缓存所需要的组件，但是并没有定义session与客户端的之间的联系，
@@ -197,7 +188,7 @@
     <!-- 配置需要向Cookie中保存数据的配置模版 -->
     <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
         <!-- 在Tomcat运行下默认使用的Cookie的名字为JSESSIONID -->
-        <constructor-arg name="name" value="bobomico.sesssion"/>
+        <constructor-arg name="name" value="BOBOMICO-COOKIE"/>
         <property name="path" value="/"/>
         <!-- 保证该系统不会受到跨域的脚本操作攻击 -->
         <property name="httpOnly" value="true"/>
@@ -215,13 +206,13 @@
     <!-- 缓存用户登录信息 次数和时间 -->
     <bean id="passwordRetryCache" class="com.bobomico.shiro.cache.PasswordRetryCache">
         <constructor-arg index="0">
-            <ref bean="cacheManager" />
+            <ref bean="ehCacheManager" />
         </constructor-arg>
     </bean>
 
     <!-- todo 即将废弃的方法 -->
-    <!-- 缓存管理器 使用Ehcache实现 -->
-    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+    <!-- 缓存管理器 使用Ehcache实现 该类实现了CacheManager, Initializable, Destroyable -->
+    <bean id="ehCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
         <property name="cacheManagerConfigFile" value="classpath:shiro/ehcache.xml" />
     </bean>
 

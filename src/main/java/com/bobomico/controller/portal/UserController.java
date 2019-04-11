@@ -76,6 +76,16 @@ public class UserController extends BaseController {
     }
 
     /**
+     * 权限测试
+     * @return
+     */
+    @PostMapping("test.do")
+    @RequiresPermissions("user:create")
+    public ServerResponse<String> test(){
+        return ServerResponse.createBySuccess();
+    }
+
+    /**
      * 获取用户详细信息
      * @param session
      * @param response

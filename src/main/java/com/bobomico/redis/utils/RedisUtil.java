@@ -4,6 +4,8 @@ import com.bobomico.redis.common.RedisPool;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 
+import java.util.Set;
+
 /**
  * @ClassName: com.bobomico.redis.utils.mallbobomico
  * @Author: DELL
@@ -12,7 +14,7 @@ import redis.clients.jedis.Jedis;
  * @version:
  */
 @Slf4j
-public class RedisPoolUtil {
+public class RedisUtil {
 
     /**
      * 设置(或重置) key的有效期
@@ -20,7 +22,7 @@ public class RedisPoolUtil {
      * @param exTime 单位是秒
      * @return
      */
-    public static Long expire(String key, int exTime){
+    public static Long expire(byte[] key, int exTime){
         Jedis jedis = null;
         Long result = null;
         try {
@@ -36,13 +38,13 @@ public class RedisPoolUtil {
     }
 
     /**
-     * set 限时key
+     * set 限时key !
      * @param key
      * @param value
      * @param exTime 单位是秒
      * @return
      */
-    public static String setEx(String key,String value,int exTime){
+    public static String setEx(byte[] key, byte[] value, int exTime){
         Jedis jedis = null;
         String result = null;
         try {
@@ -58,15 +60,14 @@ public class RedisPoolUtil {
     }
 
     /**
-     * set
+     * set!
      * @param key
      * @param value
      * @return
      */
-    public static String set(String key, String value){
+    public static String set(byte[] key, byte[] value){
         Jedis jedis = null;
         String result = null;
-
         try {
             jedis = RedisPool.getJedis();
             result = jedis.set(key, value);
@@ -81,33 +82,33 @@ public class RedisPoolUtil {
     }
 
     /**
-     * get
+     * get!
      * @param key
      * @return
      */
-    public static String get(String key){
+    public static byte[] get(byte[] key){
+        byte[] value = null;
         Jedis jedis = null;
-        String result;
         try {
             jedis = RedisPool.getJedis();
-            result = jedis.get(key);
+            value = jedis.get(key);
         } catch (Exception e) {
             log.error("get key:{} error",key,e);
             RedisPool.returnBrokenResource(jedis);
             return null;
         }
         RedisPool.returnResource(jedis);
-        return result;
+        return value;
     }
 
     /**
-     * 删除
+     * del!
      * @param key
      * @return
      */
-    public static Long del(String key){
+    public static Long del(byte[] key){
         Jedis jedis = null;
-        Long result = null;
+        Long result;
         try {
             jedis = RedisPool.getJedis();
             result = jedis.del(key);
@@ -121,25 +122,56 @@ public class RedisPoolUtil {
     }
 
     /**
-     * 测试
-     * @param args
+     * flush!
      */
-    public static void main(String[] args) {
-        Jedis jedis = RedisPool.getJedis();
+    public static void flushDB() {
+        Jedis jedis = null;
+        try {
+            jedis = RedisPool.getJedis();
+            jedis.flushDB();
+        } catch (Exception e) {
+            log.error("flush error: {}", e);
+            RedisPool.returnBrokenResource(jedis);
+        }
+        RedisPool.returnResource(jedis);
+    }
 
-        RedisPoolUtil.set("keyTest", "value");
+    /**
+     * size!
+     */
+    public static Long dbSize() {
+        Jedis jedis = null;
+        Long result;
+        try {
+            jedis = RedisPool.getJedis();
+            result = jedis.dbSize();
+        } catch (Exception e) {
+            log.error("get size error: {}", e);
+            RedisPool.returnBrokenResource(jedis);
+            return null;
+        }
+        RedisPool.returnResource(jedis);
+        return result;
+    }
 
-        String value = RedisPoolUtil.get("keyTest");
-
-        RedisPoolUtil.setEx("keyex", "valueex", 60*10);
-
-        RedisPoolUtil.expire("keyTest", 60*20);
-
-        RedisPoolUtil.del("keyTest");
-
-        String aaa = RedisPoolUtil.get(null);
-
-        System.out.println(aaa);
-        System.out.println("end");
+    /**
+     * keys
+     * @param pattern
+     * @return
+     */
+    public static Set<byte[]> keys(String pattern) {
+        Jedis jedis = null;
+        Set<byte[]> result;
+        try {
+            jedis = RedisPool.getJedis();
+            result = jedis.keys(pattern.getBytes());
+        } catch (Exception e) {
+            log.error("get keys: {} error", pattern, e);
+            // 中止操作
+            RedisPool.returnBrokenResource(jedis);
+            return null;
+        }
+        RedisPool.returnResource(jedis);
+        return result;
     }
 }

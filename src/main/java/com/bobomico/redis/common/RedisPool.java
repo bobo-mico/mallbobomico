@@ -10,7 +10,7 @@ import redis.clients.jedis.JedisPoolConfig;
  * @ClassName: com.bobomico.redis.common.mallbobomico
  * @Author: DELL
  * @Date: 2019/4/7  17:23
- * @Description:
+ * @Description: jedis连接池
  * @version:
  */
 @Slf4j

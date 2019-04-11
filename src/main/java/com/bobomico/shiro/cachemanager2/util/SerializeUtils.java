@@ -9,28 +9,28 @@ import java.io.*;
  * @Author: DELL
  * @Date: 2019/4/8  18:03
  * @Description: 序列化和反序列化工具
- *                  可用 com.bobomico.util.JsonUtil 替代
  * @version:
  */
 @Slf4j
+// @Deprecated
 public class SerializeUtils {
+
     /**
      * 反序列化
      * @param bytes
      * @return
      */
     public static Object deserialize(byte[] bytes) {
-
         Object result = null;
-
         if (isEmpty(bytes)) {
             return null;
         }
-
+        ByteArrayInputStream byteStream = null;
+        ObjectInputStream objectInputStream = null;
         try {
-            ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
+            byteStream = new ByteArrayInputStream(bytes);
             try {
-                ObjectInputStream objectInputStream = new ObjectInputStream(byteStream);
+                objectInputStream = new ObjectInputStream(byteStream);
                 try {
                     result = objectInputStream.readObject();
                 }
@@ -43,6 +43,9 @@ public class SerializeUtils {
             }
         } catch (Exception e) {
             log.error("Failed to deserialize",e);
+        } finally {
+            close(objectInputStream);
+            close(byteStream);
         }
         return result;
     }
@@ -57,20 +60,20 @@ public class SerializeUtils {
      * @return
      */
     public static byte[] serialize(Object object) {
-
         byte[] result = null;
-
         if (object == null) {
             return new byte[0];
         }
+        ByteArrayOutputStream byteStream = null;
+        ObjectOutputStream objectOutputStream = null;
         try {
-            ByteArrayOutputStream byteStream = new ByteArrayOutputStream(128);
+            byteStream = new ByteArrayOutputStream(128);
             try  {
                 if (!(object instanceof Serializable)) {
                     throw new IllegalArgumentException(SerializeUtils.class.getSimpleName() + " requires a Serializable payload " +
                             "but received an object of type [" + object.getClass().getName() + "]");
                 }
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteStream);
+                objectOutputStream = new ObjectOutputStream(byteStream);
                 objectOutputStream.writeObject(object);
                 objectOutputStream.flush();
                 result =  byteStream.toByteArray();
@@ -80,7 +83,26 @@ public class SerializeUtils {
             }
         } catch (Exception ex) {
             log.error("Failed to serialize",ex);
+        } finally {
+            close(objectOutputStream);
+            close(byteStream);
         }
         return result;
+    }
+
+    /**
+     * 关闭流
+     * @param closeable
+     */
+    private static void close(Closeable closeable) {
+        if (closeable != null){
+            try {
+                closeable.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("close stream error");
+            }
+        }
+
     }
 }

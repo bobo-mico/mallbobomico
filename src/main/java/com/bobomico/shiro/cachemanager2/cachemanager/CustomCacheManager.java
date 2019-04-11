@@ -12,7 +12,7 @@ import org.apache.shiro.util.Destroyable;
  * @ClassName: com.bobomico.shiro.cachemanager2.mallbobomico
  * @Author: DELL
  * @Date: 2019/4/8  17:48
- * @Description: 自定义缓存管理器
+ * @Description: 自定义缓存管理器 必须实现CacheManager接口
  *                  这里采用了代理模式，也就是说，真正调用的是IShiroCacheManager的实现类
  *                  该缓存管理器会注入到安全管理器 由shiro自行调用
  * @version:
@@ -25,8 +25,8 @@ public class CustomCacheManager implements CacheManager, Destroyable {
     private IShiroCacheManager shrioCacheManager;
 
     /**
-     * 获取缓存 主要消费者是realm
-     * @param name
+     * 该方法为shiro提供缓存技术
+     * @param name 必须指定名字且保证线程安全
      * @param <k>
      * @param <v>
      * @return

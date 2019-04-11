@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>代码废品场</title>
+</head>
+<body>
+    在这里记录一些废弃的代码
+
+    废弃理由，毫无意义，重新获取session就能达到同样的目的
+    /**
+    * 时机: 认证之后 session缓存之前
+    * 目的: 遍历redis缓存 查看用户是否已经存在登录信息
+    * 如果已经存在 从缓存中清理已经存在的session 达到强制下线的目的
+    * 前端要想办法通知被强制下线的用户
+    */
+    // try{
+    //     DefaultWebSecurityManager securityManager = (DefaultWebSecurityManager)SecurityUtils.getSecurityManager();
+    //     DefaultWebSessionManager sessionManager = (DefaultWebSessionManager)securityManager.getSessionManager();
+    //     Session current = SecurityUtils.getSubject().getSession();
+    //     Session result = sessionManager.getSessionDAO().readSession(current.getId());
+    //     if(token.getPrincipal().equals(String.valueOf(result.getAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY)))) {
+    //         sessionManager.getSessionDAO().delete(result);
+    //     }
+    // }catch (UnknownSessionException ex){
+    //     log.info("该用户没有在其他地方登录");
+    // }
+
+    // // 获取当前已登录的用户session列表
+    // Collection<Session> sessions = sessionManager.getSessionDAO().getActiveSessions();
+        // for(Session session : sessions){
+        //     // 清除该用户其他在线的session
+        //     if(token.getPrincipal().equals(String.valueOf(session.getAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY)))) {
+        //         sessionManager.getSessionDAO().delete(session);
+        //     }
+        // }
+
+        // SecurityUtils.getSubject().getSession();
+        // 获取session域的数据
+        // Session session = subject.getSession();
+
+</body>
+</html>

@@ -5,12 +5,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.bobomico.redis.utils.RedisUtil;
 import com.bobomico.shiro.cachemanager2.dao.IShiroSessionRepository;
-import com.bobomico.shiro.cachemanager2.util.RedisManager;
 import com.bobomico.shiro.cachemanager2.util.SerializeUtils;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.session.Session;
+import org.springframework.stereotype.Component;
 
 /**
  * @ClassName: com.bobomico.shiro.cachemanager2.session.mallbobomico
@@ -19,15 +20,16 @@ import org.apache.shiro.session.Session;
  * @Description: sessionDAO的实现类 缓存技术使用redis
  * @version:
  */
+@Component("jedisIShiroSessionRepositoryImpl")
 @NoArgsConstructor
 @Slf4j
 public class JedisIShiroSessionRepositoryImpl implements IShiroSessionRepository {
 
-    // redis session key 前缀
+    // redis session缓存前缀
     private final String REDIS_SHIRO_SESSION = "shiro-session:";
 
     // Redis实现 可用redisUtil取代
-    private RedisManager redisManager;
+    // private RedisManager redisManager;
 
     /**
      * 新增或修改session
@@ -44,7 +46,7 @@ public class JedisIShiroSessionRepositoryImpl implements IShiroSessionRepository
         byte[] value = SerializeUtils.serialize(session);
         // 因为redis的时限是以秒计算的 而session的超时时间是以毫秒计算的 所以/1000
         Long timeOut = session.getTimeout() / 1000;
-        redisManager.set(key, value, timeOut.intValue());
+        RedisUtil.setEx(key, value, timeOut.intValue());
     }
 
     /**
@@ -58,7 +60,7 @@ public class JedisIShiroSessionRepositoryImpl implements IShiroSessionRepository
             return;
         }
         byte[] key = getByteKey(sessionId);
-        redisManager.del(key);
+        RedisUtil.del(key);
     }
 
     /**
@@ -74,7 +76,7 @@ public class JedisIShiroSessionRepositoryImpl implements IShiroSessionRepository
         }
         Session session = null;
         byte[] key = getByteKey(sessionId);
-        byte[] value = redisManager.get(key);
+        byte[] value = RedisUtil.get(key);
         if (null == value)
             return null;
         session = (Session) SerializeUtils.deserialize(value);
@@ -88,11 +90,10 @@ public class JedisIShiroSessionRepositoryImpl implements IShiroSessionRepository
     @Override
     public Collection<Session> getAllSessions() {
         Set<Session> sessions = new HashSet();
-        Set<byte[]> byteKeys = redisManager.keys(this.REDIS_SHIRO_SESSION + "*");
+        Set<byte[]> byteKeys = RedisUtil.keys(this.REDIS_SHIRO_SESSION + "*");
         if (byteKeys != null && byteKeys.size() > 0) {
             for (byte[] bs : byteKeys) {
-                Session s = (Session) SerializeUtils.deserialize(redisManager
-                        .get(bs));
+                Session s = (Session) SerializeUtils.deserialize(RedisUtil.get(bs));
                 sessions.add(s);
             }
         }
@@ -109,12 +110,12 @@ public class JedisIShiroSessionRepositoryImpl implements IShiroSessionRepository
         return preKey.getBytes();
     }
 
-    public RedisManager getRedisManager() {
-        return redisManager;
-    }
-
-    public void setRedisManager(RedisManager redisManager) {
-        this.redisManager = redisManager;
-    }
+    // public RedisManager getRedisManager() {
+    //     return redisManager;
+    // }
+    //
+    // public void setRedisManager(RedisManager redisManager) {
+    //     this.redisManager = redisManager;
+    // }
 
 }
