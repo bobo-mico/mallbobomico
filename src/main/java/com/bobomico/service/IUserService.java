@@ -1,8 +1,9 @@
 package com.bobomico.service;
 
 import com.bobomico.common.ServerResponse;
-import com.bobomico.controller.vo.UserLoginVO;
+import com.bobomico.controller.vo.UserLoginVo;
 import com.bobomico.dao.po.SysPermission;
+import com.bobomico.dao.po.SysQuestionAnswer;
 import com.bobomico.dao.po.SysUserInf;
 import com.bobomico.dao.po.SysUserLogin;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -11,7 +12,7 @@ import java.util.List;
 
 public interface IUserService {
     // 注册
-    ServerResponse<String> register(UserLoginVO userLogin);
+    ServerResponse<String> register(UserLoginVo userLogin);
 
     // 根据用户ID重置密码
     ServerResponse<String> resetPassword(String passwordOld, String passwordNew, Integer sysUserId);
@@ -45,4 +46,10 @@ public interface IUserService {
 
     // 获取个人详细信息
     ServerResponse<SysUserInf> getInformation(Integer userId);
+
+    // 设置密码提示问题和答案
+    ServerResponse<String> insertQuestionAnswer(List<SysQuestionAnswer> sysQuestionAnswers);
+
+    // 检验用户名是否存在
+    ServerResponse<String> checkValid(String subject, String type);
 }

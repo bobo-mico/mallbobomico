@@ -94,7 +94,7 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.bobomico.dao.po.SysUserLogin" >
     update sys_user_login
     <set >
-      <if test="status != null" >
+      <if test="loginName != null" >
         login_name = #{loginName,jdbcType=VARCHAR},
       </if>
       <if test="loginEmail != null" >

@@ -3,7 +3,7 @@ package com.bobomico.service.impl;
 import com.bobomico.common.Const;
 import com.bobomico.common.ServerResponse;
 import com.bobomico.common.TokenCache;
-import com.bobomico.controller.vo.UserLoginVO;
+import com.bobomico.controller.vo.UserLoginVo;
 import com.bobomico.dao.SysPermissionMapperCustom;
 import com.bobomico.dao.SysQuestionAnswerMapper;
 import com.bobomico.dao.SysUserInfMapper;
@@ -12,6 +12,7 @@ import com.bobomico.dao.po.SysPermission;
 import com.bobomico.dao.po.SysQuestionAnswer;
 import com.bobomico.dao.po.SysUserInf;
 import com.bobomico.dao.po.SysUserLogin;
+import com.bobomico.pojo.Question;
 import com.bobomico.pojo.RegisterUser;
 import com.bobomico.service.IUserService;
 import com.bobomico.shiro.token.EmailPasswordToken;
@@ -26,8 +27,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-@Service
+@Service("userServiceImpl")
 public class UserServiceImpl implements IUserService {
 
     @Autowired
@@ -55,7 +57,7 @@ public class UserServiceImpl implements IUserService {
      * @return
      */
     @Override
-    public ServerResponse<String> register(UserLoginVO userLoginVO){
+    public ServerResponse<String> register(UserLoginVo userLoginVO){
         String type = userLoginVO.getType();
         ServerResponse validResponse;
 
@@ -165,7 +167,7 @@ public class UserServiceImpl implements IUserService {
      * @param type
      * @return
      */
-    private ServerResponse<String> checkValid(String subject, String type) {
+    public ServerResponse<String> checkValid(String subject, String type) {
         if(org.apache.commons.lang3.StringUtils.isNotBlank(type)) {
             if(Const.USERNAME.equals(type)) {
                 // 检查同名username
@@ -189,10 +191,12 @@ public class UserServiceImpl implements IUserService {
                 if (resultCount > 0) {
                     return ServerResponse.createByErrorMessage("用户已经存在");
                 }
+            }else{
+                return ServerResponse.createByErrorMessage("type参数错误");
             }
             // todo 后续追加手机注册逻辑
         }else{
-            return ServerResponse.createByErrorMessage("参数错误");
+            return ServerResponse.createByErrorMessage("subject参数错误");
         }
         return ServerResponse.createBySuccessMessage("校验成功");
     }
@@ -262,7 +266,7 @@ public class UserServiceImpl implements IUserService {
         if(validResponse.isSuccess()){
             return ServerResponse.createByErrorMessage("用户不存在");
         }
-        List<SysQuestionAnswer> questions = sysQuestionAnswerMapper.selectByUserId(userId);
+        List<Question> questions = sysQuestionAnswerMapper.selectByUserId(userId);
         if(questions != null){
             return ServerResponse.createBySuccess(questions);
         }
@@ -356,5 +360,20 @@ public class UserServiceImpl implements IUserService {
         }
         // todo 通过sessionDAO将查询到的用户信息设置到缓存中
         return ServerResponse.createBySuccess(user);
+    }
+
+    /**
+     * 设置密码提示问题及答案
+     * @param questions
+     * @return
+     */
+    public ServerResponse<String> insertQuestionAnswer(List<SysQuestionAnswer> questions){
+        // 先过滤大于4的问题编号
+        questions = questions.stream()
+                .filter(x -> x.getSysUserId() < 4)
+                .collect(Collectors.toList());
+        // 插入问题
+        questions.stream().forEach(sysQuestionAnswerMapper::createSelective);
+        return ServerResponse.createBySuccessMessage("密码问题已更新");
     }
 }

@@ -1,43 +1,18 @@
 package com.bobomico.dao.po;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SysRolePermission {
     private String id;
 
     private String sysRoleId;
 
     private String sysPermissionId;
-
-    public SysRolePermission(String id, String sysRoleId, String sysPermissionId) {
-        this.id = id;
-        this.sysRoleId = sysRoleId;
-        this.sysPermissionId = sysPermissionId;
-    }
-
-    public SysRolePermission() {
-        super();
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id == null ? null : id.trim();
-    }
-
-    public String getSysRoleId() {
-        return sysRoleId;
-    }
-
-    public void setSysRoleId(String sysRoleId) {
-        this.sysRoleId = sysRoleId == null ? null : sysRoleId.trim();
-    }
-
-    public String getSysPermissionId() {
-        return sysPermissionId;
-    }
-
-    public void setSysPermissionId(String sysPermissionId) {
-        this.sysPermissionId = sysPermissionId == null ? null : sysPermissionId.trim();
-    }
 }

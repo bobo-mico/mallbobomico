@@ -116,4 +116,59 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <!-- 先查看该商品在不在用户的购物车 -->
+  <select id="selectCartByUserIdProductId" resultMap="BaseResultMap" parameterType="map">
+    SELECT
+    <include refid="Base_Column_List"/>
+    from bobomico_mall_cart
+    where sys_user_id = #{userId}
+    and product_id = #{productId}
+  </select>
+
+  <select id="selectCartByUserId" resultMap="BaseResultMap" parameterType="int">
+    SELECT
+    <include refid="Base_Column_List"/>
+    from bobomico_mall_cart
+    where sys_user_id = #{userId}
+  </select>
+
+  <select id="selectCartProductCheckedStatusByUserId" resultType="int" parameterType="int">
+    SELECT  count(1) from bobomico_mall_cart where checked = 0 and sys_user_id = #{userId}
+  </select>
+
+  <!-- 删除购物车商品 -->
+  <delete id="deleteByUserIdProductIds" parameterType="map">
+    delete from bobomico_mall_cart
+    where sys_user_id = #{userId}
+    <if test="productIdList != null">
+      and product_id in
+      <foreach collection="productIdList" item="item" index="index" open="(" separator="," close=")">
+        #{item}
+      </foreach>
+    </if>
+  </delete>
+
+  <update id="checkedOrUncheckedProduct" parameterType="map">
+    UPDATE  bobomico_mall_cart
+    set checked = #{checked},
+    update_time = now()
+    where sys_user_id = #{userId}
+    <if test="productId != null">
+      and product_id = #{productId}
+    </if>
+  </update>
+
+  <select id="selectCartProductCount" parameterType="int" resultType="int">
+    select IFNULL(sum(quantity),0) as count from bobomico_mall_cart where sys_user_id = #{userId}
+  </select>
+
+  <!-- 查询勾选的购物车 -->
+  <select id="selectCheckedCartByUserId" parameterType="int" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    from bobomico_mall_cart
+    where sys_user_id = #{userId}
+    and checked = 1
+  </select>
 </mapper>

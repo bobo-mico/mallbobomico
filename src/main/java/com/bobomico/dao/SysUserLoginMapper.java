@@ -5,6 +5,7 @@ import com.bobomico.pojo.RegisterUser;
 import org.apache.ibatis.annotations.Param;
 
 public interface SysUserLoginMapper {
+
     int deleteByPrimaryKey(Integer sysUserId);
 
     int insert(SysUserLogin record);
@@ -36,5 +37,5 @@ public interface SysUserLoginMapper {
     SysUserLogin selectLoginForPhone(@Param("login_phone") String principal);
 
     // 根据用户ID修改密码和盐
-    int updatePasswordByUsername(Integer userId, String originSalt, String md5Password);
+    // int updatePasswordByUsername(Integer userId, String originSalt, String md5Password);
 }

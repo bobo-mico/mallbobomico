@@ -11,6 +11,7 @@ import org.apache.shiro.cache.CacheManager;
  * @Description: 缓存用户登录信息
  * @version:
  */
+@Deprecated
 public class PasswordRetryCache {
     private Cache<String, UserLoginRetryInfo> passwordRetryCache;
 

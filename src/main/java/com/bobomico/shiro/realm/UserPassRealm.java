@@ -19,7 +19,7 @@ import java.util.List;
  * @ClassName: com.bobomico.shiro.realm.mallbobomico
  * @Author: DELL
  * @Date: 2019/3/28  2:54
- * @Description: 自定义Realm
+ * @Description: 自定义Realm 实现缓存管理
  * @version:
  */
 public class UserPassRealm extends AuthorizingRealm {
@@ -49,7 +49,7 @@ public class UserPassRealm extends AuthorizingRealm {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        // cacheAuthenticationInfoIfPossible();
         // 账户不存在
         if (sysUserLogin == null) {
             return null;

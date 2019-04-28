@@ -16,6 +16,7 @@
     2 LFU，最少被使用，缓存的元素有一个hit属性，hit值最小的将会被清出缓存。
     3 LRU，最近最少使用的，缓存的元素有一个时间戳，当缓存容量满了，而又需要腾出地方来缓存新的元素的时候，那么现有缓存元素中时间戳离当前时间最远的元素将被清出缓存。
     -->
+
     <defaultCache
             maxElementsInMemory="10000"
             eternal="false"
@@ -23,8 +24,7 @@
             timeToLiveSeconds="120"
             overflowToDisk="false"
             diskPersistent="false"
-            diskExpiryThreadIntervalSeconds="120"
-    />
+            diskExpiryThreadIntervalSeconds="120" />
 
     <cache name="activeSessionCache"
            maxElementsInMemory="10000"
@@ -34,6 +34,19 @@
            diskExpiryThreadIntervalSeconds="600"/>
 
     <cache name="shiro.authorizationCache"
+           maxElementsInMemory="100"
+           eternal="false"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+    <cache name="authorizationCache"
+           maxElementsInMemory="100"
+           eternal="false"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+    <!-- 认证缓存 -->
+    <cache name="authenticationCache"
            maxElementsInMemory="100"
            eternal="false"
            timeToLiveSeconds="600"

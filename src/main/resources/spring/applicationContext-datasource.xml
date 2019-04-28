@@ -61,7 +61,7 @@
         <property name="mapperLocations" value="classpath*:mappers/*.xml"></property>
     </bean>
 
-    <!-- 扫描dao接口 mybatis代理功能 -->
+    <!-- 扫描dao接口 mybatis动态代理 -->
     <bean name="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
         <property name="basePackage" value="com.bobomico.dao"/>
     </bean>

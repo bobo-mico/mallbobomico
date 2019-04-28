@@ -1,12 +1,18 @@
 package com.bobomico.common;
 
 /**
- * 枚举 - 只能在提供的对象中选择一个
- * 响应状态码
+ * @ClassName: com.bobomico.common.mallbobomico
+ * @Author: DELL
+ * @Date: 2019/3/29  6:54
+ * @Description: 枚举 - 只能在提供的对象中选择一个
+ * @version:
  */
 public enum ResponseCode {
-    SUCCESS(1, "操作成功"), // 对像
-    ERROR(0, "操作失败");   // 对像
+
+    SUCCESS(0,"SUCCESS"),                   // 成功
+    ERROR(1,"ERROR"),                       // 错误
+    NEED_LOGIN(10,"NEED_LOGIN"),            // 需登录
+    ILLEGAL_ARGUMENT(2,"ILLEGAL_ARGUMENT"); // 非法参数
 
     private final int code;
     private final String desc;
@@ -18,7 +24,6 @@ public enum ResponseCode {
     }
 
     // 因为它的构造函数是私有的 对像也是无法访问的 所以需要提供两个getter函数 供外部获取对像
-    // alt + insert + fn
     public int getCode() {
         return code;
     }
@@ -26,4 +31,5 @@ public enum ResponseCode {
     public String getDesc() {
         return desc;
     }
+
 }

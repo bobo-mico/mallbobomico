@@ -6,6 +6,7 @@ import com.bobomico.bo.UserLoginRetryInfo;
 import com.bobomico.common.Const;
 import com.bobomico.common.ServerResponse;
 import com.bobomico.shiro.cache.PasswordRetryCache;
+import com.bobomico.shiro.common.AjaxTool;
 import com.bobomico.shiro.token.EmailPasswordToken;
 import com.bobomico.shiro.token.PhonePasswordToken;
 import org.apache.shiro.SecurityUtils;
@@ -16,11 +17,17 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.apache.shiro.web.filter.authc.FormAuthenticationFilter;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -29,6 +36,7 @@ import java.io.InputStreamReader;
 import java.net.URLDecoder;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /*
 Shiro提供了三个默认实现：
@@ -48,11 +56,63 @@ Shiro提供了三个默认实现：
 @Component
 public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
 
+    private static final Logger log = LoggerFactory.getLogger(JsonDataFormAuthenticationFilter.class);
+
+    @Autowired
+    private AjaxTool ajaxTool;
+
     @Autowired
     private PasswordRetryCache passwordRetryCache;
 
-    // 执行登录时调用的函数
+    /**
+     * 防止重复登录
+     * @param request
+     * @param response
+     * @param mappedValue
+     * @return
+     */
+    @Override
+    protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+        if(isLoginRequest(request, response) && isLoginSubmission(request, response)){
+            if(log.isTraceEnabled()){
+                log.trace("Login submission detected. Attempting to execute login.");
+            }
+            return false;
+        }
+        return super.isAccessAllowed(request, response, mappedValue);
+    }
+
+    /**
+     * 执行登录时调用的函数
+     * @param request
+     * @param response
+     * @return
+     * @throws Exception
+     */
     protected boolean executeLogin(ServletRequest request, ServletResponse response) throws Exception {
+        // // 通过请求直接获取request中包含的所有的cookie
+        // Cookie[] cookies = ((HttpServletRequest)request).getCookies();
+        // // 遍历所有的cookie,然后根据cookie的key值来获取value值
+        // if (cookies!=null) {
+        //     for (Cookie cookie : cookies) {
+        //         System.out.println(cookie.getName());
+        //         System.out.println(cookie.getValue());
+        //     }
+        // }
+
+        // 是否是Ajax请求
+        if(ajaxTool.isAjax(request)){
+            try {
+                Map<String, Object> _xr = ajaxTool.refactoringRequest(request, response);
+                request = (ServletRequest) _xr.get("request");
+                response = (ServletResponse) _xr.get("response");
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ServletException e) {
+                e.printStackTrace();
+            }
+        }
+
         // 待认证用户
         AuthenticationToken token = createToken(request, response);
 
@@ -63,7 +123,6 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
         }
         try {
             Subject subject = getSubject(request, response);
-
             /**
              * think about
              *      先前的代码在提交之前保存了session状态 认证之后注销了session 导致session中保存的
@@ -72,10 +131,11 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
              *      现将逻辑修正为 在执行认证之后 保存状态 注销session 复制状态 问题解决
              */
             System.out.println("认证前SESSION ID = " + SecurityUtils.getSubject().getSession().getId());
+
             // 提交认证 如果错误会抛出异常并执行catch
             subject.login(token);
 
-            // 获取session域的数据
+            // 防止Session fixation
             Session session = subject.getSession();
             final LinkedHashMap<Object, Object> attributes = new LinkedHashMap();
             final Collection<Object> keys = session.getAttributeKeys();
@@ -85,13 +145,10 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
                     attributes.put(key, value);
                 }
             }
-
             // 状态保存后注销当前session
             session.stop();
-
             // 获取新的session
-            session = subject.getSession();
-
+            session = SecurityUtils.getSubject().getSession();
             // 复制session数据
             for (final Object key : attributes.keySet()){
                 session.setAttribute(key, attributes.get(key));
@@ -118,12 +175,12 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
-        // 能正常获取用户登录状态了
-        Session session = subject.getSession(false);
-        if(session != null){
-            boolean flag = (boolean) session.getAttribute(DefaultSubjectContext.AUTHENTICATED_SESSION_KEY);
-            System.out.println(flag);
-        }
+        // // 获取session
+        // Session session = subject.getSession(false);
+        // if(session != null){
+        //     boolean flag = (boolean) session.getAttribute(DefaultSubjectContext.AUTHENTICATED_SESSION_KEY);
+        //     System.out.println(flag);
+        // }
 
         System.out.println("认证成功时SESSION ID = " + SecurityUtils.getSubject().getSession().getId());
         System.out.println("用户名：" + SecurityUtils.getSubject().getPrincipal());
@@ -133,7 +190,7 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
         System.out.println("LAST：" + SecurityUtils.getSubject().getSession().getLastAccessTime());
 
         // ajax请求的处理方法
-        if (isAjax(httpServletRequest)) {
+        if (ajaxTool.isAjax(httpServletRequest)) {
 
             // todo
             // saveRequestAndRedirectToLogin(request, response);
@@ -178,20 +235,24 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
             String message = e.getClass().getSimpleName();
             if ("IncorrectCredentialsException".equals(message)) {
                 serverResponse = ServerResponse.createByErrorMessage("密码错误" );
-            } else if ("ExcessiveAttemptsException".equals(message)) {
+            }else if("ExcessiveAttemptsException".equals(message)) {
                 System.out.println(message);
                 UserLoginRetryInfo userLoginRetryInfo =
                         passwordRetryCache.getPasswordRetryCache().get((String)token.getPrincipal());
                 int retryCount = userLoginRetryInfo.getAtomicInteger().get();
                 System.out.println("密码错误" + retryCount);
                 serverResponse = ServerResponse.createByErrorMessage("密码错误(您已连续输错" + retryCount + "次)" );
-            } else if ("UnknownAccountException".equals(message)) {
+            }else if("UnknownAccountException".equals(message)) {
                 System.out.println(message);
                 serverResponse = ServerResponse.createByErrorMessage("账号未注册");
             }else if ("LockedAccountException".equals(message)) {
                 System.out.println(message);
                 serverResponse = ServerResponse.createByErrorMessage("账号被锁定");
-            } else {
+            }else if("ExpiredCredentialsException ".equals(message)){
+                serverResponse = ServerResponse.createByErrorMessage("过期的凭证");
+            }else if("DisabledAccountException ".equals(message)){
+                serverResponse = ServerResponse.createByErrorMessage("禁用的账号");
+            }else{
                 System.out.println("未知错误");
                 serverResponse = ServerResponse.createByErrorMessage("未知错误");
             }
@@ -209,15 +270,6 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
     //     return true;
     // }
 
-    // 是否是ajax提交
-    private boolean isAjax(ServletRequest request) {
-        String header = ((HttpServletRequest) request).getHeader("X-Requested-With");
-        if ("XMLHttpRequest".equalsIgnoreCase(header)) {
-            return Boolean.TRUE;
-        }
-        return Boolean.FALSE;
-    }
-
     /**
      * 根据Type创建不同的token
      * @param request
@@ -231,18 +283,17 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
         // JSON解析
         JSONObject json = JSON.parseObject(reqBody);
         String type = json.getString("type");
+        String subject = json.getString("username");
+        char[] password = json.getString("password").toCharArray();
 
         // 根据不同的type创建不同的token
         switch(type){
             case Const.EMAIL:
-                return new EmailPasswordToken(
-                        json.getString("email"), json.getString("password").toCharArray());
+                return new EmailPasswordToken(subject, password);
             case Const.USERNAME:
-                return new UsernamePasswordToken(
-                        json.getString("username"), json.getString("password").toCharArray());
+                return new UsernamePasswordToken(subject, password);
             case Const.PHONE:
-                return new PhonePasswordToken(
-                        json.getString("phone"), json.getString("password").toCharArray());
+                return new PhonePasswordToken(subject, password);
             default:
                 System.out.println("请选择正确的登录方式");
                 return null;

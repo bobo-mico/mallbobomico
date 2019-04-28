@@ -18,7 +18,6 @@ import java.util.Iterator;
  * @Description: 重写 认证器
  * @version:
  */
-@Component
 public class CustomModularRealmAuthenticator  extends ModularRealmAuthenticator {
 
     @Override

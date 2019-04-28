@@ -3,16 +3,21 @@ package com.bobomico.shiro.matcher;
 import com.bobomico.bo.UserLoginRetryInfo;
 import com.bobomico.common.Const;
 import com.bobomico.dao.po.SysUserLogin;
+import com.bobomico.ehcache.MicoCacheManager;
+import com.bobomico.ehcache.origin.Cache;
 import com.bobomico.observer.Observer;
 import com.bobomico.observer.Subject;
 import com.bobomico.observer.UserStatusSubject;
+import com.bobomico.pojo.ActiveUser;
 import com.bobomico.quartz.stevexie.scheduler.UserScheduler;
 import com.bobomico.service.IUserService;
 import com.bobomico.shiro.cache.PasswordRetryCache;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.session.Session;
+import org.apache.shiro.session.UnknownSessionException;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
@@ -22,6 +27,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -29,20 +35,34 @@ import java.util.logging.Logger;
  * @ClassName: com.timisakura.shiro.matcher.bobomiccore2
  * @Author: Lion
  * @Date: 2019/3/22  4:11
- * @Description: 实现自己的凭证匹配器
+ * @Description: 凭证匹配器
+ *                  1、记录用户登录信息
+ *                      包括用户登录时间，用户登录错误次数等。
+ *                      采用ehcache进行记录，该信息采用RMI进行同步
  * @version:
  */
+@Slf4j
 public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher implements Observer {
+
+    @Autowired
+    private MicoCacheManager vieMallCacheManager;
+
+    private AtomicInteger atomicInteger;
+
     private String observerName;
+
     // 用户状态
     private boolean isUnlock = Boolean.FALSE;
+
     private String username;
-    private static final Logger logger = Logger.getLogger("RetryLimitHashedCredentialsMatcher");
+
     // 记录用户登录信息
     @Autowired
     private PasswordRetryCache passwordRetryCache;
+
     @Autowired
     private IUserService iUserService;
+
     @Autowired
     private UserScheduler userScheduler;
 
@@ -54,9 +74,9 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
     }
 
     /**
-     * 执行凭证匹配器 回调方法
-     * @param token
-     * @param info
+     * 回调函数
+     * @param token 待认证信息
+     * @param info  用户信息
      * @return
      */
     @Override
@@ -64,7 +84,7 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
         // 获取用户名
         username = (String)token.getPrincipal();
 
-        // 获取用户多次登录记录
+        // 获取登录信息
         UserLoginRetryInfo userLoginRetryInfo = passwordRetryCache.getPasswordRetryCache().get(username);
 
         // 如果用户初次登录
@@ -77,7 +97,7 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
                 long currentTime = now.getTime();
                 // 设置用户登录信息
                 userLoginRetryInfo = new UserLoginRetryInfo(new AtomicInteger(0), currentTime);
-                logger.info("用户第一次登录时间: " + now);
+                log.info("用户第一次登录时间: " + now);
                 // 缓存用户信息
                 passwordRetryCache.getPasswordRetryCache().put(username, userLoginRetryInfo);
             } catch (ParseException e) {
@@ -88,20 +108,21 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
         // 检查登录次数
         int userRetryCount = userLoginRetryInfo.getAtomicInteger().incrementAndGet();  //查看incrementAndGet()源码 retryCount + 1
         if (userRetryCount > 1 && userRetryCount < Const.shiro.RETRYNUMBER) {
-            try {
+            // ehcache rmi
+            // try {
                 // 获取本次登录时间
-                SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-                Date now = new Date();
-                now = simpleFormat.parse(simpleFormat.format(now));
-                logger.info("用户本次登录时间: " + now);
-                long currentTime = now.getTime();
-                if(!isFast(userLoginRetryInfo.getLoginTime(), currentTime)){
-                    // 清除用户登录记录
-                    passwordRetryCache.getPasswordRetryCache().remove(username);
-                }
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+                // SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+                // Date now = new Date();
+                // now = simpleFormat.parse(simpleFormat.format(now));
+                // logger.info("用户本次登录时间: " + now);
+                // long currentTime = now.getTime();
+                // if(!isFast(userLoginRetryInfo.getLoginTime(), currentTime)){
+                //     // 清除用户登录记录
+                //     passwordRetryCache.getPasswordRetryCache().remove(username);
+                // }
+            // } catch (ParseException e) {
+            //     e.printStackTrace();
+            // }
         }else if(userRetryCount >= Const.shiro.RETRYNUMBER){
             // 建议用户状态改为常量
             // 修改数据库字段
@@ -114,7 +135,7 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
                 // 创建定时解锁任务
                 userScheduler.unlockJob(sysUserLogin.getSysUserId());
             }
-            logger.info("该用户已被锁定" + username);
+            log.info("该用户已被锁定" + username);
             // 用户锁定异常
             throw new LockedAccountException();
         }
@@ -123,19 +144,6 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
         if (super.doCredentialsMatch(token, info)) {
             // 如果正确 从缓存中将用户登录计数清除
             passwordRetryCache.getPasswordRetryCache().remove(username);
-            /**
-             * 从缓存中清理已经存在的session 达到强制下线的目的
-             * 前端要想办法通知被强制下线的用户
-             */
-            // DefaultWebSecurityManager securityManager = (DefaultWebSecurityManager) SecurityUtils.getSecurityManager();
-            // DefaultWebSessionManager sessionManager = (DefaultWebSessionManager)securityManager.getSessionManager();
-            // Collection<Session> sessions = sessionManager.getSessionDAO().getActiveSessions();//获取当前已登录的用户session列表
-            // for(Session session : sessions){
-            //     // 清除该用户其他在线的session
-            //     if(token.getPrincipal().equals(String.valueOf(session.getAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY)))) {
-            //         sessionManager.getSessionDAO().delete(session);
-            //     }
-            // }
             return Boolean.TRUE;
         }else{
             switch(userRetryCount){
@@ -159,20 +167,8 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
         if(isUnlock){
             // 用户登录次数记录清空
             passwordRetryCache.getPasswordRetryCache().remove(username);
-            logger.info("该用户登录次数已重置: " + username);
+            log.info("该用户登录次数已重置: " + username);
         }
-    }
-
-    /**
-     * 距离第一次登录时间小于2分钟返回true
-     * @param first
-     * @param now
-     * @return
-     */
-    public boolean isFast(long first, long now){
-        int minutes = (int) ((now - first) / (1000 * 60));
-        System.out.println("用户距离上次错误时间差: " + minutes);
-        return minutes < 1 ? Boolean.TRUE : Boolean.FALSE;
     }
 
     public String getObserverName() {
@@ -182,5 +178,38 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
     public void setObserverName(String observerName) {
         this.observerName = observerName;
     }
+
+    /**
+     * 检索
+     * @param username
+     * @return
+     */
+    public int findById(String username) {
+        log.info("cache miss, invoke find by id, id:" + username);
+        return (int) vieMallCacheManager.get("user", username);
+    }
+
+    /**
+     * 设置和重置
+     * @param user
+     * @return
+     */
+    public ActiveUser save(ActiveUser user) {
+        vieMallCacheManager.set("user", user.getId(), user);
+        return user;
+    }
+
+    // /**
+    //  * 清除缓存中的某个数据
+    //  * @param name Cache region name
+    //  * @param key Cache key
+    //  */
+    // public  void evict(String name, Object key){
+    //     if(name!=null && key != null) {
+    //         Cache cache = cacheManager.getCache(name);
+    //         if (cache != null)
+    //             cache.evict(key);
+    //     }
+    // }
 
 }

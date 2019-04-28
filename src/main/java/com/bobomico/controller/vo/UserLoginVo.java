@@ -4,7 +4,7 @@ import com.bobomico.dao.po.SysUserLogin;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserLoginVO extends SysUserLogin {
+public class UserLoginVo extends SysUserLogin {
     private String type;
 
     public String getType() {
