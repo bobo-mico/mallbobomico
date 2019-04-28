@@ -44,8 +44,8 @@ import java.util.logging.Logger;
 @Slf4j
 public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher implements Observer {
 
-    // @Autowired
-    private MicoCacheManager vieMallCacheManager;
+    @Autowired
+    private MicoCacheManager micoCacheManager;
 
     private AtomicInteger atomicInteger;
 
@@ -55,10 +55,6 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
     private boolean isUnlock = Boolean.FALSE;
 
     private String username;
-
-    // 记录用户登录信息
-    @Autowired
-    private PasswordRetryCache passwordRetryCache;
 
     @Autowired
     private IUserService iUserService;
@@ -84,53 +80,27 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
         // 获取用户名
         username = (String)token.getPrincipal();
 
-        // 获取登录信息
-        UserLoginRetryInfo userLoginRetryInfo = passwordRetryCache.getPasswordRetryCache().get(username);
+        // // 获取登录信息
+        AtomicInteger loginInfo = (AtomicInteger) micoCacheManager.get(Const.cache.CACHE_REGION, username);
 
         // 如果用户初次登录
-        if (userLoginRetryInfo == null) {
-            try {
-                // 获取用户登录时间
-                SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-                Date now = new Date();
-                now = simpleFormat.parse(simpleFormat.format(now));
-                long currentTime = now.getTime();
-                // 设置用户登录信息
-                userLoginRetryInfo = new UserLoginRetryInfo(new AtomicInteger(0), currentTime);
-                log.info("用户第一次登录时间: " + now);
-                // 缓存用户信息
-                passwordRetryCache.getPasswordRetryCache().put(username, userLoginRetryInfo);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+        if (loginInfo == null) {
+            // 缓存用户登录信息
+            micoCacheManager.set(Const.cache.CACHE_REGION, username, new AtomicInteger(0));
         }
 
         // 检查登录次数
-        int userRetryCount = userLoginRetryInfo.getAtomicInteger().incrementAndGet();  //查看incrementAndGet()源码 retryCount + 1
-        if (userRetryCount > 1 && userRetryCount < Const.shiro.RETRYNUMBER) {
-            // ehcache rmi
-            // try {
-                // 获取本次登录时间
-                // SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-                // Date now = new Date();
-                // now = simpleFormat.parse(simpleFormat.format(now));
-                // logger.info("用户本次登录时间: " + now);
-                // long currentTime = now.getTime();
-                // if(!isFast(userLoginRetryInfo.getLoginTime(), currentTime)){
-                //     // 清除用户登录记录
-                //     passwordRetryCache.getPasswordRetryCache().remove(username);
-                // }
-            // } catch (ParseException e) {
-            //     e.printStackTrace();
-            // }
-        }else if(userRetryCount >= Const.shiro.RETRYNUMBER){
-            // 建议用户状态改为常量
-            // 修改数据库字段
+        // 查看incrementAndGet()源码 retryCount + 1
+        int retryCount = loginInfo.incrementAndGet();
+        if (retryCount < Const.shiro.RETRYNUMBER) {
+            micoCacheManager.update(Const.cache.CACHE_REGION, username, loginInfo);
+        }else{
+            // 数据库锁定用户
             SysUserLogin sysUserLogin = iUserService.findSysUserByTokenType(token);
             if (sysUserLogin != null && Const.userStatus.LOCKED != sysUserLogin.getUserStats()) {
                 // 修改数据库的状态字段为锁定
                 sysUserLogin.setUserStats((byte) Const.userStatus.LOCKED);
-                // 调用服务层更新用户状态 todo 自定义异常处理
+                // 调用服务层更新用户状态
                 iUserService.updateUserStatus(sysUserLogin);
                 // 创建定时解锁任务
                 userScheduler.unlockJob(sysUserLogin.getSysUserId());
@@ -142,15 +112,16 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
 
         // 判断用户账号和密码是否正确
         if (super.doCredentialsMatch(token, info)) {
-            // 如果正确 从缓存中将用户登录计数清除
-            passwordRetryCache.getPasswordRetryCache().remove(username);
+            // 如果正确 从缓存中将用户登录信息清除
+            micoCacheManager.evict(Const.cache.CACHE_REGION, username);
             return Boolean.TRUE;
         }else{
-            switch(userRetryCount){
+            switch(retryCount){
                 case 1:
+                    // 凭证错误异常
                     throw new IncorrectCredentialsException();
                 default:
-                    // 用户登录错误次数太多异常
+                    // 登录错误次数过多异常
                     throw new ExcessiveAttemptsException();
             }
         }
@@ -166,7 +137,7 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
         isUnlock = ((UserStatusSubject)subjectIsLock).isUnlock();
         if(isUnlock){
             // 用户登录次数记录清空
-            passwordRetryCache.getPasswordRetryCache().remove(username);
+            micoCacheManager.evict(Const.cache.CACHE_REGION, username);
             log.info("该用户登录次数已重置: " + username);
         }
     }
@@ -186,7 +157,7 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
      */
     public int findById(String username) {
         log.info("cache miss, invoke find by id, id:" + username);
-        return (int) vieMallCacheManager.get("user", username);
+        return (int) micoCacheManager.get("user", username);
     }
 
     /**
@@ -195,7 +166,7 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
      * @return
      */
     public ActiveUser save(ActiveUser user) {
-        vieMallCacheManager.set("user", user.getId(), user);
+        micoCacheManager.set("user", user.getId(), user);
         return user;
     }
 
