@@ -1,5 +1,9 @@
 package com.bobomico.pojo;
 
+import lombok.*;
+
+import java.io.Serializable;
+
 /**
  * @ClassName: com.bobomico.pojo.mallbobomico
  * @Author: DELL
@@ -7,6 +11,12 @@ package com.bobomico.pojo;
  * @Description: 用户权限 + 用户登录信息
  * @version:
  */
-public class ActiveUser {
-
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+public class ActiveUser implements Serializable {
+    private Long id;
+    private String name;
 }

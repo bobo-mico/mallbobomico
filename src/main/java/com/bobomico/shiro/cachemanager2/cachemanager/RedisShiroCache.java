@@ -30,14 +30,7 @@ public class RedisShiroCache<K, V> implements Cache<K, V> {
 
     // redis中的缓存前缀
     private final String SHIRO_CACHE_TOKEN_PREFIX = "shiro-cache:";
-
-    // todo 升级为SpringBoot时使用
-    // @Autowired
-    // private RedisTemplate<K, V> redisTemplate;
-
-    // redisUtil
-    // private RedisManager cache;
-
+    
     private String name;
 
     // public RedisShiroCache(String name, RedisManager jedisManager) {

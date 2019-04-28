@@ -3,9 +3,12 @@ package com.bobomico.shiro.matcher;
 import com.bobomico.bo.UserLoginRetryInfo;
 import com.bobomico.common.Const;
 import com.bobomico.dao.po.SysUserLogin;
+import com.bobomico.ehcache.MicoCacheManager;
+import com.bobomico.ehcache.origin.Cache;
 import com.bobomico.observer.Observer;
 import com.bobomico.observer.Subject;
 import com.bobomico.observer.UserStatusSubject;
+import com.bobomico.pojo.ActiveUser;
 import com.bobomico.quartz.stevexie.scheduler.UserScheduler;
 import com.bobomico.service.IUserService;
 import com.bobomico.shiro.cache.PasswordRetryCache;
@@ -32,20 +35,34 @@ import java.util.logging.Logger;
  * @ClassName: com.timisakura.shiro.matcher.bobomiccore2
  * @Author: Lion
  * @Date: 2019/3/22  4:11
- * @Description: 实现自己的凭证匹配器
+ * @Description: 凭证匹配器
+ *                  1、记录用户登录信息
+ *                      包括用户登录时间，用户登录错误次数等。
+ *                      采用ehcache进行记录，该信息采用RMI进行同步
  * @version:
  */
 @Slf4j
 public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher implements Observer {
+
+    @Autowired
+    private MicoCacheManager vieMallCacheManager;
+
+    private AtomicInteger atomicInteger;
+
     private String observerName;
+
     // 用户状态
     private boolean isUnlock = Boolean.FALSE;
+
     private String username;
+
     // 记录用户登录信息
     @Autowired
     private PasswordRetryCache passwordRetryCache;
+
     @Autowired
     private IUserService iUserService;
+
     @Autowired
     private UserScheduler userScheduler;
 
@@ -57,9 +74,9 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
     }
 
     /**
-     * 执行凭证匹配器 回调方法
-     * @param token
-     * @param info
+     * 回调函数
+     * @param token 待认证信息
+     * @param info  用户信息
      * @return
      */
     @Override
@@ -67,7 +84,7 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
         // 获取用户名
         username = (String)token.getPrincipal();
 
-        // 获取用户多次登录记录
+        // 获取登录信息
         UserLoginRetryInfo userLoginRetryInfo = passwordRetryCache.getPasswordRetryCache().get(username);
 
         // 如果用户初次登录
@@ -161,5 +178,38 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
     public void setObserverName(String observerName) {
         this.observerName = observerName;
     }
+
+    /**
+     * 检索
+     * @param username
+     * @return
+     */
+    public int findById(String username) {
+        log.info("cache miss, invoke find by id, id:" + username);
+        return (int) vieMallCacheManager.get("user", username);
+    }
+
+    /**
+     * 设置和重置
+     * @param user
+     * @return
+     */
+    public ActiveUser save(ActiveUser user) {
+        vieMallCacheManager.set("user", user.getId(), user);
+        return user;
+    }
+
+    // /**
+    //  * 清除缓存中的某个数据
+    //  * @param name Cache region name
+    //  * @param key Cache key
+    //  */
+    // public  void evict(String name, Object key){
+    //     if(name!=null && key != null) {
+    //         Cache cache = cacheManager.getCache(name);
+    //         if (cache != null)
+    //             cache.evict(key);
+    //     }
+    // }
 
 }

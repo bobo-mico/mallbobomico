@@ -5,6 +5,7 @@ import com.bobomico.pojo.RegisterUser;
 import org.apache.ibatis.annotations.Param;
 
 public interface SysUserLoginMapper {
+
     int deleteByPrimaryKey(Integer sysUserId);
 
     int insert(SysUserLogin record);
