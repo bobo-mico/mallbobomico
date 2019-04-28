@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+		xmlns='http://www.ehcache.org/v3'
+		xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core.xsd">
+
+	<!-- 以下配置参考 https://www.jianshu.com/p/5a0669d6305e/ https://blog.csdn.net/zdc524/article/details/70842490?utm_source=blogxgwz3-->
+	<!-- 1、描述缓存的别名 -->
+	<cache alias="foo">
+		<!-- 2、foo的key的类型指定为String类型，而value并没有指定类型，默认就是Object类型 -->
+		<key-type>java.lang.String</key-type>
+		<value-type>java.lang.String</value-type>
+		<resources>
+			<!-- 3、可以在堆中为foo创建2000个实体 -->
+			<heap unit="entries">2000</heap>
+			<!-- 4、在开始淘汰过期缓存项之前，可以分配多达500M的堆内存 -->
+			<offheap unit="MB">500</offheap>
+		</resources>
+	</cache>
+
+	<!-- 5、cache-template可以实现一个配置抽象，以便在未来可以进行扩展 注：好像就是预配置 -->
+	<cache-template name="myDefaults">
+		<key-type>java.lang.Long</key-type>
+		<value-type>java.lang.String</value-type>
+		<heap unit="entries">200</heap>
+	</cache-template>
+
+	<!-- 6、bar使用了cache-template模板myDefaults，并且覆盖了key-type类型，myDefaults的key-type是Long类型，覆盖后成了Number类型 -->
+	<cache alias="bar" uses-template="myDefaults">
+		<key-type>java.lang.Number</key-type>
+	</cache>
+
+	<!-- 7、直接沿用预配置 -->
+	<cache alias="simpleCache" uses-template="myDefaults"/>
+
+</config>

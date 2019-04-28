@@ -5,12 +5,12 @@
 	 <diskStore path="java.io.tmpdir/ehcache-rmi-1000" />
 	 
 	 <!-- 
-	    EhCache 提供两种节点的发现方式：手工配置和自动发现。
+	   EhCache 提供两种成员发现方式：手工配置和自动发现。
 	   手工配置 : peerDiscovery=manual
 	   多台机器配置 rmiUrls=//192.168.0.12:4567/oschina_cache|//192.168.0.13:4567/oschina_cache
 
-	 automatic 自动模式
-	 manual	   手动模式
+	 automatic 自动发现
+	 manual	   手动发现
 
 	  自动发现：
 		多播方式配置
@@ -26,7 +26,8 @@
     	    multicastGroupPort=1000, timeToLive=32" /> 
 	  -->
 
-	 <cacheManagerPeerProviderFactory 
+	<!-- 手工配置 : peerDiscovery=manual 采用的就是手动发现模式 -->
+	 <cacheManagerPeerProviderFactory
 		    class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory" 
 		    properties="hostName=127.0.0.1,
 		    port=1000,
@@ -50,8 +51,10 @@
 		diskPersistent="true"
 		diskExpiryThreadIntervalSeconds="120"
 		memoryStoreEvictionPolicy="LRU">
+		<cacheEventListenerFactory
+				class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"/>
 	</defaultCache>
-	
+
 	<!-- demo缓存 -->
 	<cache name="user"
 		maxElementsInMemory="1000"
@@ -63,9 +66,8 @@
 		diskPersistent="false"
 		diskExpiryThreadIntervalSeconds="120"
 		memoryStoreEvictionPolicy="LRU">
-		<cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory" />
+<!--		<cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory" />-->
 		<!-- 用于在初始化缓存，以及自动设置 -->
 		<bootstrapCacheLoaderFactory  class="net.sf.ehcache.distribution.RMIBootstrapCacheLoaderFactory" />
 	</cache>
-
 </ehcache>

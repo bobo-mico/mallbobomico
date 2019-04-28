@@ -11,7 +11,7 @@ import org.apache.shiro.cache.CacheManager;
  * @Description: 缓存用户登录信息
  * @version:
  */
-@Deprecated
+// @Deprecated
 public class PasswordRetryCache {
     private Cache<String, UserLoginRetryInfo> passwordRetryCache;
 
@@ -23,8 +23,8 @@ public class PasswordRetryCache {
         this.passwordRetryCache = passwordRetryCache;
     }
 
-    public PasswordRetryCache(CacheManager cacheManager) {
-        // 初始化缓存
-        passwordRetryCache = cacheManager.getCache("passwordRetryCache");
-    }
+    // public PasswordRetryCache(CacheManager cacheManager) {
+    //     // 初始化缓存
+    //     passwordRetryCache = cacheManager.getCache("passwordRetryCache");
+    // }
 }

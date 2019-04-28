@@ -27,7 +27,7 @@ public class Rmi_1000_CacheTest {
 
         do {
             try {
-                // System.out.print("> ");
+                // System.out.print(">");
                 // System.out.flush();
                 // String line = in.readLine().trim();
                 String line = "start";

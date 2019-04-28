@@ -53,6 +53,9 @@
                 /styles/** = anon
                 /css/** = anon
 
+                <!-- 缓存测试 -->
+                /ehcache/*.do = anon
+
                 <!-- 首页 -->
                 /index.jsp = anon
 
@@ -205,16 +208,16 @@
     <!-- todo 即将废弃的方法 -->
     <!-- 缓存用户登录信息 次数和时间 -->
     <bean id="passwordRetryCache" class="com.bobomico.shiro.cache.PasswordRetryCache">
-        <constructor-arg index="0">
-            <ref bean="ehCacheManager" />
-        </constructor-arg>
+<!--        <constructor-arg index="0">-->
+<!--            <ref bean="ehCacheManager" />-->
+<!--        </constructor-arg>-->
     </bean>
 
     <!-- todo 即将废弃的方法 -->
     <!-- 缓存管理器 使用Ehcache实现 该类实现了CacheManager, Initializable, Destroyable -->
-    <bean id="ehCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
-        <property name="cacheManagerConfigFile" value="classpath:shiro/ehcache.xml" />
-    </bean>
+<!--    <bean id="ehCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">-->
+<!--        <property name="cacheManagerConfigFile" value="classpath:shiro/ehcache.xml" />-->
+<!--    </bean>-->
 
     <!-- 已被废弃的配置 -->
     <!-- 随后需要定义有一个会话的DAO处理，指的是你的会话的缓存位置，本次暂时将所有的会话数据保存在内存里面。

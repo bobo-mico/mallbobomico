@@ -44,7 +44,7 @@ import java.util.logging.Logger;
 @Slf4j
 public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher implements Observer {
 
-    @Autowired
+    // @Autowired
     private MicoCacheManager vieMallCacheManager;
 
     private AtomicInteger atomicInteger;
