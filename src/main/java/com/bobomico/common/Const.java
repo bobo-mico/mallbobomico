@@ -167,4 +167,11 @@ public class Const {
             throw new RuntimeException("没有找到对应的枚举");
         }
     }
+
+    /**
+     * ehcache的缓存管理
+     */
+    public interface cache{
+        String CACHE_REGION = "user";
+    }
 }

@@ -3,7 +3,10 @@ package com.bobomico.ehcache;
 import com.bobomico.ehcache.exception.CacheException;
 import com.bobomico.ehcache.manager.CacheManager;
 import com.bobomico.ehcache.origin.Cache;
+import com.bobomico.ehcache.test.po.User;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Set;
@@ -12,10 +15,11 @@ import java.util.Set;
  * @ClassName: com.bobomico.ehcache.mallbobomico
  * @Author: DELL
  * @Date: 2019/4/11  14:01
- * @Description: 对外开放的管理器
- * @version:
+ * @Description: 对外开放的EhCache管理器
+ * @version: beta
  */
 @Slf4j
+@Component
 public class MicoCacheManager {
 
     private  CacheManager cacheManager;
@@ -24,15 +28,28 @@ public class MicoCacheManager {
      * 获取缓存中的数据
      * @param name Cache region name
      * @param key Cache key
-     * @return Cache object
+     * @return object
      */
-    public  Object get(String name, Object key){
+    public Object get(String name, Object key){
         if(name!=null && key != null) {
             Cache cache = cacheManager.getCache(name);
             if (cache != null)
                 return cache.get(key);
         }
         return null;
+    }
+
+    /**
+     * 修改缓存中的数据
+     * @param name
+     * @param key
+     * @param value
+     */
+    public void update(String name, Object key, Object value){
+        if(name!=null && key != null) {
+            evict(name, key);
+            set(name, key, value);
+        }
     }
 
     /**
