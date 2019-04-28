@@ -16,7 +16,7 @@
 <!--    <bean id="ehCacheCacheManager" class="com.bobomico.ehcache.manager.EhCacheManager" p:cache-manager-ref="ehcacheFactory" >-->
 <!--    </bean>-->
 
-<!--    <bean id="ehcacheFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean" p:config-location="classpath:ehcache/ehcache-rmi-1000.xml" />-->
+<!--    <bean id="ehcacheFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean" p:config-location="classpath:ehcache/ehcache-rmi-2000.xml" />-->
 
 <!--&lt;!&ndash;    <bean id="customService" class="com.bobomico.pojo.UserServiceImpl">&ndash;&gt;-->
 <!--&lt;!&ndash;        <property name="vieMallCacheManager" ref="vieMallCacheManager"></property>&ndash;&gt;-->
@@ -46,7 +46,7 @@
 
     <!-- cacheManager工厂类，指定ehcache.xml的位置 -->
     <bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
-          p:configLocation="classpath:ehcache/ehcache-rmi-1000.xml"/>
+          p:configLocation="classpath:ehcache/ehcache-rmi-2000.xml"/>
 
     <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager"
           p:cacheManager-ref="ehcache"/>

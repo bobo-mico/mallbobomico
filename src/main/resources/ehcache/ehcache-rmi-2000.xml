@@ -30,14 +30,14 @@
 	 <cacheManagerPeerProviderFactory
 		    class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory" 
 		    properties="hostName=127.0.0.1,
-		    port=1000,
+		    port=2000,
 		    socketTimeoutMillis=12000,
 		    peerDiscovery=manual,
-		    rmiUrls=//127.0.0.1:2000/user" />
+		    rmiUrls=//127.0.0.1:1000/user" />
 		
 	 <cacheManagerPeerListenerFactory
 		class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"
-		properties="hostName=127.0.0.1,port=1000,socketTimeoutMillis=120000" /> 
+		properties="hostName=127.0.0.1,port=2000,socketTimeoutMillis=120000" />
        	
 	<!-- 默认缓存 -->
 	<defaultCache
