@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * @Description: 用户登录次数缓存 线程安全
  * @version:
  */
-@Component
+@Deprecated
 public class RetryCountTransit {
     ThreadLocal<Integer> retryCount = new ThreadLocal(){
         protected Integer initialValue(){

@@ -41,10 +41,10 @@ public class UnlockJob implements Job {
         sysUserLogin.setUserStats((byte)Const.userStatus.ACTIVATED);
         int result = userServiceImpl.updateUserStatus(sysUserLogin);
         if(result > 0){
-            logger.info("该用户已解锁" + userId);
+            logger.info("该用户已解锁");
             userStatusSubject.setUnlock(Boolean.TRUE); // 发布更新
         }else{
-            logger.info("数据库异常" + userId);
+            logger.info("数据库异常");
         }
     }
 

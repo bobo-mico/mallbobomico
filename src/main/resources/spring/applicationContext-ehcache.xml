@@ -12,19 +12,21 @@
         http://www.springframework.org/schema/cache
         http://www.springframework.org/schema/cache/spring-cache-4.2.xsd">
 
-<!--    &lt;!&ndash; 工厂注入 &ndash;&gt;-->
-<!--    <bean id="ehCacheCacheManager" class="com.bobomico.ehcache.manager.EhCacheManager" p:cache-manager-ref="ehcacheFactory" >-->
-<!--    </bean>-->
+    <!-- 启用缓存注解功能 -->
+<!--    <cache:annotation-driven cache-manager="cacheManager"/>-->
 
-<!--    <bean id="ehcacheFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean" p:config-location="classpath:ehcache/ehcache-rmi-2000.xml" />-->
+    <!-- 初始化ehcache工厂对象 -->
+    <bean id="ehcacheFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
+          p:config-Location="classpath:ehcache/ehcache-rmi-2000.xml" />
 
-<!--&lt;!&ndash;    <bean id="customService" class="com.bobomico.pojo.UserServiceImpl">&ndash;&gt;-->
-<!--&lt;!&ndash;        <property name="vieMallCacheManager" ref="vieMallCacheManager"></property>&ndash;&gt;-->
-<!--&lt;!&ndash;    </bean>&ndash;&gt;-->
+    <!-- 工厂注入 -->
+    <bean id="cacheManager" class="com.bobomico.ehcache.manager.EhCacheManager"
+          p:cache-manager-ref="ehcacheFactory" >
+    </bean>
 
-<!--    <bean id="vieMallCacheManager" class="com.bobomico.ehcache.MicoCacheManager" >-->
-<!--        <property name="cacheManager" ref="ehCacheCacheManager"></property>-->
-<!--    </bean>-->
+    <bean id="micoCacheManager" class="com.bobomico.ehcache.MicoCacheManager" >
+        <property name="cacheManager" ref="cacheManager"></property>
+    </bean>
 
     <!-- 以下配置为整合ehcache 但没有rmi功能 -->
     <!-- 以下配置来自 https://www.jianshu.com/p/5a0669d6305e/ -->
@@ -32,24 +34,22 @@
 <!--        <property name="configLocation"  value="classpath:ehcache/ehcache.xml"/>-->
 <!--    </bean>-->
 
-<!--    &lt;!&ndash; 支持缓存注解 &ndash;&gt;-->
+    <!-- 支持缓存注解 -->
 <!--    <cache:annotation-driven cache-manager="cacheManager" />-->
 
-<!--    &lt;!&ndash; 默认是cacheManager &ndash;&gt;-->
+    <!-- 默认是cacheManager -->
 <!--    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">-->
 <!--        <property name="cacheManager"  ref="cacheManagerFactory"/>-->
 <!--    </bean>-->
 
     <!-- spring cache 配置 -->
-    <!-- 启用缓存注解功能 -->
-    <cache:annotation-driven cache-manager="cacheManager"/>
 
     <!-- cacheManager工厂类，指定ehcache.xml的位置 -->
-    <bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
-          p:configLocation="classpath:ehcache/ehcache-rmi-2000.xml"/>
+<!--    <bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"-->
+<!--          p:configLocation="classpath:ehcache/ehcache-rmi-2000.xml"/>-->
 
-    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager"
-          p:cacheManager-ref="ehcache"/>
+<!--    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager"-->
+<!--          p:cacheManager-ref="ehcache"/>-->
 
-    <cache:annotation-driven />
+<!--    <cache:annotation-driven />-->
 </beans>

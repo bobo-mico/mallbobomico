@@ -205,13 +205,13 @@
         <!-- <property name="path" value="cookies"></property> -->
     </bean>
 
-    <!-- todo 即将废弃的方法 -->
-    <!-- 缓存用户登录信息 次数和时间 -->
-    <bean id="passwordRetryCache" class="com.bobomico.shiro.cache.PasswordRetryCache">
-<!--        <constructor-arg index="0">-->
-<!--            <ref bean="ehCacheManager" />-->
-<!--        </constructor-arg>-->
-    </bean>
+<!--    &lt;!&ndash; todo 即将废弃的方法 &ndash;&gt;-->
+<!--    &lt;!&ndash; 缓存用户登录信息 次数和时间 &ndash;&gt;-->
+<!--    <bean id="passwordRetryCache" class="com.bobomico.shiro.cache.PasswordRetryCache">-->
+<!--&lt;!&ndash;        <constructor-arg index="0">&ndash;&gt;-->
+<!--&lt;!&ndash;            <ref bean="ehCacheManager" />&ndash;&gt;-->
+<!--&lt;!&ndash;        </constructor-arg>&ndash;&gt;-->
+<!--    </bean>-->
 
     <!-- todo 即将废弃的方法 -->
     <!-- 缓存管理器 使用Ehcache实现 该类实现了CacheManager, Initializable, Destroyable -->

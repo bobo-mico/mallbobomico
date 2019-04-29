@@ -1,35 +1,20 @@
 package com.bobomico.shiro.matcher;
 
-import com.bobomico.bo.UserLoginRetryInfo;
 import com.bobomico.common.Const;
 import com.bobomico.dao.po.SysUserLogin;
 import com.bobomico.ehcache.MicoCacheManager;
-import com.bobomico.ehcache.origin.Cache;
 import com.bobomico.observer.Observer;
 import com.bobomico.observer.Subject;
 import com.bobomico.observer.UserStatusSubject;
 import com.bobomico.pojo.ActiveUser;
 import com.bobomico.quartz.stevexie.scheduler.UserScheduler;
 import com.bobomico.service.IUserService;
-import com.bobomico.shiro.cache.PasswordRetryCache;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
-import org.apache.shiro.session.Session;
-import org.apache.shiro.session.UnknownSessionException;
-import org.apache.shiro.subject.support.DefaultSubjectContext;
-import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
-import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 
 /**
  * @ClassName: com.timisakura.shiro.matcher.bobomiccore2
@@ -79,20 +64,25 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
     public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
         // 获取用户名
         username = (String)token.getPrincipal();
+        // 登录信息
+        AtomicInteger loginInfo;
+        // 是否首次登录
+        boolean isFirstLogin = Boolean.FALSE;
 
-        // // 获取登录信息
-        AtomicInteger loginInfo = (AtomicInteger) micoCacheManager.get(Const.cache.CACHE_REGION, username);
+        try{
+            // 获取登录信息
+            loginInfo = (AtomicInteger) micoCacheManager.get(Const.cache.CACHE_REGION, username);
+        }catch (NullPointerException e){
+            log.debug("ehcache缓存异常 获取不到对象");
+            throw e;
+        }
 
         // 如果用户初次登录
         if (loginInfo == null) {
             // 缓存用户登录信息
-            micoCacheManager.set(Const.cache.CACHE_REGION, username, new AtomicInteger(0));
-        }
-
-        // 检查登录次数
-        // 查看incrementAndGet()源码 retryCount + 1
-        int retryCount = loginInfo.incrementAndGet();
-        if (retryCount < Const.shiro.RETRYNUMBER) {
+            micoCacheManager.set(Const.cache.CACHE_REGION, username, new AtomicInteger(1));
+            isFirstLogin = Boolean.TRUE;
+        }else if (loginInfo.incrementAndGet() < Const.shiro.RETRYNUMBER) {  // 查看incrementAndGet()源码 retryCount + 1
             micoCacheManager.update(Const.cache.CACHE_REGION, username, loginInfo);
         }else{
             // 数据库锁定用户
@@ -116,14 +106,11 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
             micoCacheManager.evict(Const.cache.CACHE_REGION, username);
             return Boolean.TRUE;
         }else{
-            switch(retryCount){
-                case 1:
-                    // 凭证错误异常
-                    throw new IncorrectCredentialsException();
-                default:
-                    // 登录错误次数过多异常
-                    throw new ExcessiveAttemptsException();
+            if(isFirstLogin){
+                // 凭证错误异常
+                throw new IncorrectCredentialsException();
             }
+            throw new ExcessiveAttemptsException();
         }
     }
 

@@ -3,10 +3,7 @@ package com.bobomico.ehcache;
 import com.bobomico.ehcache.exception.CacheException;
 import com.bobomico.ehcache.manager.CacheManager;
 import com.bobomico.ehcache.origin.Cache;
-import com.bobomico.ehcache.test.po.User;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Set;
@@ -19,10 +16,9 @@ import java.util.Set;
  * @version: beta
  */
 @Slf4j
-@Component
 public class MicoCacheManager {
 
-    private  CacheManager cacheManager;
+    private CacheManager cacheManager;
 
     /**
      * 获取缓存中的数据

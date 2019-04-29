@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bobomico.bo.UserLoginRetryInfo;
 import com.bobomico.common.Const;
 import com.bobomico.common.ServerResponse;
-import com.bobomico.shiro.cache.PasswordRetryCache;
+import com.bobomico.ehcache.MicoCacheManager;
 import com.bobomico.shiro.common.AjaxTool;
 import com.bobomico.shiro.token.EmailPasswordToken;
 import com.bobomico.shiro.token.PhonePasswordToken;
@@ -15,10 +15,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
-import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.apache.shiro.web.filter.authc.FormAuthenticationFilter;
-import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
-import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
@@ -27,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -37,6 +33,7 @@ import java.net.URLDecoder;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /*
 Shiro提供了三个默认实现：
@@ -62,7 +59,7 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
     private AjaxTool ajaxTool;
 
     @Autowired
-    private PasswordRetryCache passwordRetryCache;
+    private MicoCacheManager micoCacheManager;
 
     /**
      * 防止重复登录
@@ -236,12 +233,10 @@ public class JsonDataFormAuthenticationFilter extends FormAuthenticationFilter{
             if ("IncorrectCredentialsException".equals(message)) {
                 serverResponse = ServerResponse.createByErrorMessage("密码错误" );
             }else if("ExcessiveAttemptsException".equals(message)) {
-                System.out.println(message);
-                UserLoginRetryInfo userLoginRetryInfo =
-                        passwordRetryCache.getPasswordRetryCache().get((String)token.getPrincipal());
-                int retryCount = userLoginRetryInfo.getAtomicInteger().get();
-                System.out.println("密码错误" + retryCount);
-                serverResponse = ServerResponse.createByErrorMessage("密码错误(您已连续输错" + retryCount + "次)" );
+                System.out.println(token.getPrincipal());
+                AtomicInteger atomicInteger = (AtomicInteger) micoCacheManager.get(
+                        Const.cache.CACHE_REGION, token.getPrincipal());
+                serverResponse = ServerResponse.createByErrorMessage("密码错误(您已连续输错" + atomicInteger.get() + "次)" );
             }else if("UnknownAccountException".equals(message)) {
                 System.out.println(message);
                 serverResponse = ServerResponse.createByErrorMessage("账号未注册");
