@@ -52,6 +52,7 @@
                 /js/** = anon
                 /styles/** = anon
                 /css/** = anon
+                /*.html = anon
 
                 <!-- 缓存测试 -->
                 /ehcache/*.do = anon

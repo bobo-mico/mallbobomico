@@ -17,7 +17,7 @@
 
     <!-- 初始化ehcache工厂对象 -->
     <bean id="ehcacheFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
-          p:config-Location="classpath:ehcache/ehcache-rmi-2000.xml" />
+          p:config-Location="classpath:ehcache/ehcache-rmi-1000.xml" />
 
     <!-- 工厂注入 -->
     <bean id="cacheManager" class="com.bobomico.ehcache.manager.EhCacheManager"
@@ -46,7 +46,7 @@
 
     <!-- cacheManager工厂类，指定ehcache.xml的位置 -->
 <!--    <bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"-->
-<!--          p:configLocation="classpath:ehcache/ehcache-rmi-2000.xml"/>-->
+<!--          p:configLocation="classpath:ehcache/ehcache-rmi-1000.xml"/>-->
 
 <!--    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager"-->
 <!--          p:cacheManager-ref="ehcache"/>-->

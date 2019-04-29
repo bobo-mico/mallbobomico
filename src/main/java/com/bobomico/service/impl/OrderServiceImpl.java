@@ -319,7 +319,7 @@ public class OrderServiceImpl implements IOrderService {
         // 订单关闭时间
         orderVo.setCloseTime(DateTimeUtil.dateToStr(order.getCloseTime()));
         // 主图地址
-        orderVo.setImageHost(PropertiesUtil.getProperty("ftp.server.http.prefix"));
+        orderVo.setImageHost(PropertiesUtil.getStringProperty("ftp.server.http.prefix"));
 
         // 订单商品详情 由订单详情vo组合的集合
         List<OrderItemVo> orderItemVoList = Lists.newArrayList();
@@ -428,7 +428,7 @@ public class OrderServiceImpl implements IOrderService {
                 .setUndiscountableAmount(undiscountableAmount).setSellerId(sellerId).setBody(body)
                 .setOperatorId(operatorId).setStoreId(storeId).setExtendParams(extendParams)
                 .setTimeoutExpress(timeoutExpress)
-                .setNotifyUrl(PropertiesUtil.getProperty("alipay.callback.url"))//支付宝服务器主动通知商户服务器里指定的页面http路径,根据需要设置
+                .setNotifyUrl(PropertiesUtil.getStringProperty("alipay.callback.url"))//支付宝服务器主动通知商户服务器里指定的页面http路径,根据需要设置
                 .setGoodsDetailList(goodsDetailList);
 
         AlipayF2FPrecreateResult result = tradeService.tradePrecreate(builder);
@@ -456,7 +456,7 @@ public class OrderServiceImpl implements IOrderService {
                     log.error("上传二维码异常",e);
                 }
                 log.info("qrPath:" + qrPath);
-                String qrUrl = PropertiesUtil.getProperty("ftp.server.http.prefix")+targetFile.getName();
+                String qrUrl = PropertiesUtil.getStringProperty("ftp.server.http.prefix") + targetFile.getName();
                 resultMap.put("qrUrl",qrUrl);
                 return ServerResponse.createBySuccess(resultMap);
             case FAILED:
@@ -588,7 +588,7 @@ public class OrderServiceImpl implements IOrderService {
         }
         orderProductVo.setProductTotalPrice(payment);
         orderProductVo.setOrderItemVoList(orderItemVoList);
-        orderProductVo.setImageHost(PropertiesUtil.getProperty("ftp.server.http.prefix"));
+        orderProductVo.setImageHost(PropertiesUtil.getStringProperty("ftp.server.http.prefix"));
         return ServerResponse.createBySuccess(orderProductVo);
     }
 

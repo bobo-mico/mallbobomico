@@ -26,18 +26,22 @@
     	    multicastGroupPort=1000, timeToLive=32" /> 
 	  -->
 
-	<!-- 手工配置 : peerDiscovery=manual 采用的就是手动发现模式 -->
-	 <cacheManagerPeerProviderFactory
-		    class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory" 
-		    properties="hostName=127.0.0.1,
-		    port=2000,
-		    socketTimeoutMillis=12000,
-		    peerDiscovery=manual,
-		    rmiUrls=//127.0.0.1:1000/user" />
-		
-	 <cacheManagerPeerListenerFactory
-		class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"
-		properties="hostName=127.0.0.1,port=2000,socketTimeoutMillis=120000" />
+	<!--
+		手工配置 : peerDiscovery=manual 采用的就是手动发现模式
+		rmiUrls : 配置需要远程同步的缓存 可配置多个缓存 用|分隔
+	-->
+	<cacheManagerPeerProviderFactory
+			class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory"
+			properties="
+			socketTimeoutMillis=1200,
+			peerDiscovery=manual,
+			rmiUrls=//localhost:2000/user"
+	/>
+
+	<!-- 监听 -->
+	<cacheManagerPeerListenerFactory
+			class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"
+		properties="hostName=localhost,port=1000"/>
        	
 	<!-- 默认缓存 -->
 	<defaultCache
@@ -66,7 +70,8 @@
 		diskPersistent="false"
 		diskExpiryThreadIntervalSeconds="120"
 		memoryStoreEvictionPolicy="LRU">
-<!--		<cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory" />-->
+		<!-- 被这个配置坑了好久，一定要放开，不然不会同步 -->
+		<cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory" />
 		<!-- 用于在初始化缓存，以及自动设置 -->
 		<bootstrapCacheLoaderFactory  class="net.sf.ehcache.distribution.RMIBootstrapCacheLoaderFactory" />
 	</cache>

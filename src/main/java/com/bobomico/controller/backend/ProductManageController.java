@@ -111,7 +111,7 @@ public class ProductManageController {
         String path = request.getSession().getServletContext().getRealPath("upload");
         String targetFileName = iFileService.upload(file,path);
         // todo guava
-        String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + targetFileName;
+        String url = PropertiesUtil.getStringProperty("ftp.server.http.prefix") + targetFileName;
 
         Map fileMap = Maps.newHashMap();
         fileMap.put("uri", targetFileName);
@@ -144,7 +144,7 @@ public class ProductManageController {
             resultMap.put("msg", "上传失败");
             return resultMap;
         }
-        String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + targetFileName;
+        String url = PropertiesUtil.getStringProperty("ftp.server.http.prefix") + targetFileName;
         resultMap.put("success", true);
         resultMap.put("msg", "上传成功");
         resultMap.put("file_path", url);
