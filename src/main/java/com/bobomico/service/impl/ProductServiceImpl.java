@@ -134,7 +134,7 @@ public class ProductServiceImpl implements IProductService {
         productDetailVo.setStock(product.getStock());
         // todo 可以用常量
         productDetailVo.setImageHost(
-                PropertiesUtil.getProperty("ftp.server.http.prefix","http://img.happymmall.com/"));
+                PropertiesUtil.getStringProperty("ftp.server.http.prefix","http://img.happymmall.com/"));
         // 获取商品分类信息
         MallCategory category = categoryMapper.selectByPrimaryKey(product.getCategoryId());
         // 如果分类信息为空表示没有分类
@@ -182,7 +182,7 @@ public class ProductServiceImpl implements IProductService {
         productListVo.setName(product.getName());
         productListVo.setCategoryId(product.getCategoryId());
         productListVo.setImageHost(
-                PropertiesUtil.getProperty("ftp.server.http.prefix","http://img.happymmall.com/"));
+                PropertiesUtil.getStringProperty("ftp.server.http.prefix","http://img.happymmall.com/"));
         productListVo.setMainImage(product.getMainImage());
         productListVo.setPrice(product.getPrice());
         productListVo.setSubtitle(product.getSubtitle());

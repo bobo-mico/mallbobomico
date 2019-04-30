@@ -18,18 +18,18 @@ public class RedisPool {
     // jedis连接池
     private static JedisPool pool;
     // 最大连接数
-    private static Integer maxTotal = Integer.parseInt(PropertiesUtil.getProperty("redis.max.total","20"));
+    private static Integer maxTotal = PropertiesUtil.getIntegerProperty("redis.max.total",20);
     // 在jedispool中最大的idle状态(空闲的)的jedis实例的个数
-    private static Integer maxIdle = Integer.parseInt(PropertiesUtil.getProperty("redis.max.idle","20"));
+    private static Integer maxIdle = PropertiesUtil.getIntegerProperty("redis.max.idle",20);
     // 在jedispool中最小的idle状态(空闲的)的jedis实例的个数
-    private static Integer minIdle = Integer.parseInt(PropertiesUtil.getProperty("redis.min.idle","20"));
+    private static Integer minIdle = PropertiesUtil.getIntegerProperty("redis.min.idle",20);
     // 在borrow一个jedis实例的时候，是否要进行验证操作，如果赋值true。则借用的jedis实例肯定是可以用的
-    private static Boolean testOnBorrow = Boolean.parseBoolean(PropertiesUtil.getProperty("redis.test.borrow","true"));
+    private static Boolean testOnBorrow = PropertiesUtil.getBooleanProperty("redis.test.borrow", Boolean.TRUE);
     // 在return一个jedis实例的时候，是否要进行验证操作，如果赋值true。则放回jedispool的jedis实例肯定是可以用的
-    private static Boolean testOnReturn = Boolean.parseBoolean(PropertiesUtil.getProperty("redis.test.return","true"));
+    private static Boolean testOnReturn = PropertiesUtil.getBooleanProperty("redis.test.return", Boolean.TRUE);
 
-    private static String redisIp = PropertiesUtil.getProperty("redis.ip");
-    private static Integer redisPort = Integer.parseInt(PropertiesUtil.getProperty("redis.port"));
+    private static String redisIp = PropertiesUtil.getStringProperty("redis.ip");
+    private static Integer redisPort = PropertiesUtil.getIntegerProperty("redis.port");
 
     private static void initPool(){
         JedisPoolConfig config = new JedisPoolConfig();

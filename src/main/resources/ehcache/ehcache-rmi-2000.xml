@@ -36,7 +36,7 @@
 			socketTimeoutMillis=1200,
 			peerDiscovery=manual,
 			rmiUrls=//localhost:1000/user"
-	/>quartz.html
+	/>
 
 	<!-- 监听 -->
 	<cacheManagerPeerListenerFactory
@@ -70,6 +70,7 @@
 		diskPersistent="false"
 		diskExpiryThreadIntervalSeconds="120"
 		memoryStoreEvictionPolicy="LRU">
+		<!-- 被这个配置坑了好久，一定要放开，不然不会同步 -->
 		<cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory" />
 		<!-- 用于在初始化缓存，以及自动设置 -->
 		<bootstrapCacheLoaderFactory  class="net.sf.ehcache.distribution.RMIBootstrapCacheLoaderFactory" />

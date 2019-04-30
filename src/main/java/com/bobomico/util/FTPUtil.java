@@ -21,9 +21,9 @@ public class FTPUtil {
     private static  final Logger logger = LoggerFactory.getLogger(FTPUtil.class);
 
     // ip 账户 密码
-    private static String ftpIp = PropertiesUtil.getProperty("ftp.server.ip");
-    private static String ftpUser = PropertiesUtil.getProperty("ftp.user");
-    private static String ftpPass = PropertiesUtil.getProperty("ftp.pass");
+    private static String ftpIp = PropertiesUtil.getStringProperty("ftp.server.ip");
+    private static String ftpUser = PropertiesUtil.getStringProperty("ftp.user");
+    private static String ftpPass = PropertiesUtil.getStringProperty("ftp.pass");
 
     private String ip;
     private int port;
