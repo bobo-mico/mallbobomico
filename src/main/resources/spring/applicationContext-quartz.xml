@@ -8,22 +8,25 @@
             http://www.springframework.org/schema/context/spring-context-4.3.xsd"
        default-autowire="no" >
 
+    <context:component-scan base-package="com.bobomico.quartz"/>
+    <context:component-scan base-package="com.bobomico.observer"/>
+
     <!-- 读取属性文件 -->
-    <context:property-placeholder location="classpath:datasource.properties" ignore-unresolvable="true" />
+    <context:property-placeholder location="classpath:quartz/quartz.properties" ignore-unresolvable="true" />
 
     <!-- 数据源 -->
-    <bean id="quartzDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <bean name="quartzDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName">
-            <value>${db.driverClassName}</value>
+            <value>${org.quartz.dataSource.qzDB.driver}</value>
         </property>
         <property name="url">
-            <value>${db.url}</value>
+            <value>${org.quartz.dataSource.qzDB.URL}</value>
         </property>
         <property name="username">
-            <value>${db.username}</value>
+            <value>${org.quartz.dataSource.qzDB.user}</value>
         </property>
         <property name="password">
-            <value>${db.password}</value>
+            <value>${org.quartz.dataSource.qzDB.password}</value>
         </property>
     </bean>
 
@@ -34,7 +37,19 @@
 
     <!-- 第三元素 -->
     <!-- 调度器 -->
-    <bean id="quartzScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <bean name="quartzScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <!--
+            是org.springframework.scheduling.quartz.SchedulerFactoryBean这个类中把spring上下文以key/value
+            的方式存放在了quartz的上下文中了 可以用applicationContextSchedulerContextKey所定义的key得到对应的
+            spring上下文
+        -->
+        <property name="applicationContextSchedulerContextKey" value="applicationContextKey"/>
+        <!-- 如果这个覆盖配置为false quratz启动以后将以数据库的数据为准 配置文件的修改不起作用 -->
+        <property name="overwriteExistingJobs" value="true"/>
+        <!-- 数据源 -->
+        <property name="dataSource" ref="quartzDataSource"/>
+        <!-- 覆盖原有的配置文件 -->
+        <property name="configLocation" value="classpath:quartz/quartz.properties"/>
         <!-- 重要!!! -->
         <property name="jobFactory" ref="myJobFactory"/>
         <!-- 绑定JobDetails -->
