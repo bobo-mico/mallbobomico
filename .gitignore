@@ -45,3 +45,8 @@ Thumbs.db
 
 ### myself
 my/*
+
+### ehcache-rmi
+ehcache/ehcache-rmi-1000.xml
+ehcache/ehcache-rmi-2000.xml
+spring/applicationContext-ehcache.xml
