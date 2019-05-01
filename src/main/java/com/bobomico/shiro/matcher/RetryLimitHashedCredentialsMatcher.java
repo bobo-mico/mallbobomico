@@ -6,7 +6,6 @@ import com.bobomico.ehcache.MicoCacheManager;
 import com.bobomico.notify.observer.Observer;
 import com.bobomico.notify.subject.Subject;
 import com.bobomico.notify.UserStatusSubject;
-import com.bobomico.pojo.ActiveUser;
 import com.bobomico.quartz.exception.InvokeRepeatingException;
 import com.bobomico.quartz.scheduler.UserStatusScheduler;
 import com.bobomico.service.IUserService;
@@ -30,22 +29,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher implements Observer {
 
-    @Autowired
-    private MicoCacheManager micoCacheManager;
     // 订阅者
     private String observerName;
+    // 因为保存在订阅者列表中 所以引用会被更新
     private String username;
+    @Autowired
+    private MicoCacheManager micoCacheManager;
     @Autowired
     private IUserService iUserService;
     @Autowired
     private UserStatusScheduler userScheduler;
-
-    public RetryLimitHashedCredentialsMatcher(UserStatusSubject userStatusSubject) {
-        // 设置订阅名
-        this.setObserverName("RetryLimitHashedCredentialsMatcherObserver");
-        // 注册订阅
-        userStatusSubject.attach(this);
-    }
 
     /**
      * 回调函数
@@ -57,31 +50,16 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
     public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
         // 获取用户名
         username = (String)token.getPrincipal();
-        // 登录信息
-        AtomicInteger loginInfo;
-        // 是否首次登录
-        boolean isFirstLogin = Boolean.FALSE;
+        // 重复尝试次数
+        int tryCount = getCount(username);
 
-        try{
-            // 获取登录信息
-            loginInfo = (AtomicInteger) micoCacheManager.get(Const.cache.CACHE_REGION, username);
-        }catch (NullPointerException e){
-            log.debug("ehcache缓存异常 获取不到对象");
-            throw e;
-        }
-
-        // 如果用户初次登录
-        if (loginInfo == null) {
-            // 缓存用户登录信息
-            micoCacheManager.set(Const.cache.CACHE_REGION, username, new AtomicInteger(1));
-            isFirstLogin = Boolean.TRUE;
-        }else if (loginInfo.incrementAndGet() < Const.shiro.RETRYNUMBER) {  // 查看incrementAndGet()源码 retryCount + 1
-            micoCacheManager.update(Const.cache.CACHE_REGION, username, loginInfo);
-        }else{
+        if (tryCount < Const.shiro.RETRYNUMBER && tryCount != 1) {
+            // 更新用户登录缓存信息
+            micoCacheManager.update(Const.cache.CACHE_REGION, username, new AtomicInteger(tryCount));
+        }else if (tryCount == Const.shiro.RETRYNUMBER){
             // 数据库锁定用户
             SysUserLogin sysUserLogin = iUserService.findSysUserByTokenType(token);
             if (sysUserLogin != null && Const.userStatus.LOCKED != sysUserLogin.getUserStats()) {
-                log.info("TOMCAT 9080: 进入锁定任务");
                 // 修改数据库的状态字段为锁定
                 sysUserLogin.setUserStats((byte) Const.userStatus.LOCKED);
                 // 调用服务层更新用户状态
@@ -93,8 +71,10 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
                     e.printStackTrace();
                 }
             }
-            log.info("该用户已被锁定" + username);
+            log.info("{}用户已被锁定", username);
             // 用户锁定异常
+            throw new LockedAccountException();
+        }else if(tryCount > Const.shiro.RETRYNUMBER){
             throw new LockedAccountException();
         }
 
@@ -104,12 +84,40 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
             micoCacheManager.evict(Const.cache.CACHE_REGION, username);
             return Boolean.TRUE;
         }else{
-            if(isFirstLogin){
+            if(tryCount == 1){
                 // 凭证错误异常
                 throw new IncorrectCredentialsException();
             }
+            // 多次错误异常
             throw new ExcessiveAttemptsException();
         }
+    }
+
+    /**
+     * 获取用户重复登录次数
+     * @param username
+     * @return
+     */
+    private int getCount(String username){
+        // 用户尝试次数
+        int tryCount = 1;
+        // 登录信息
+        AtomicInteger loginInfo;
+        try{
+            // 获取登录信息
+            loginInfo = (AtomicInteger) micoCacheManager.get(Const.cache.CACHE_REGION, username);
+            if (loginInfo == null) {
+                // 创建用户登录缓存信息
+                micoCacheManager.set(Const.cache.CACHE_REGION, username, new AtomicInteger(1));
+            }else{
+                // 查看incrementAndGet()源码 retryCount + 1
+                tryCount = loginInfo.incrementAndGet();
+            }
+        }catch (NullPointerException e){
+            log.debug("ehcache缓存异常 获取不到对象");
+            throw e;
+        }
+        return tryCount;
     }
 
     /**
@@ -128,6 +136,17 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
     }
 
     /**
+     * 构造函数 - 订阅
+     * @param userStatusSubject
+     */
+    public RetryLimitHashedCredentialsMatcher(UserStatusSubject userStatusSubject) {
+        // 设置订阅名
+        this.setObserverName("RetryLimitHashedCredentialsMatcherObserver");
+        // 注册订阅
+        userStatusSubject.attach(this);
+    }
+
+    /**
      * 获取订阅者名称
      * @return
      */
@@ -142,7 +161,6 @@ public class RetryLimitHashedCredentialsMatcher extends HashedCredentialsMatcher
     public void setObserverName(String observerName) {
         this.observerName = observerName;
     }
-
 }
 
 // EOF

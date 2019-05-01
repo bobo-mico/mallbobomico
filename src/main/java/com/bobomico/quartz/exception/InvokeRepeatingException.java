@@ -7,7 +7,7 @@ import com.bobomico.exception.BaseException;
  * @URL:
  * @Author: DELL
  * @Date: 2019/5/1  2:13
- * @Description: 重复调用异常
+ * @Description: 重复装载异常
  * @version:
  */
 public class InvokeRepeatingException extends BaseException {

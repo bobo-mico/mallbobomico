@@ -45,6 +45,7 @@ public class QuartzUtils {
     public final static int LOG_ERROR = 40;
 
     /**
+     * 获取调度实例 - 重载
      * @param threadCount      线程数
      * @param threadPriority   线程优先级 5默认优先级
      * @param threadNamePrefix 工作线程池中线程名称的前缀将被附加前缀
@@ -64,10 +65,22 @@ public class QuartzUtils {
         return new StdSchedulerFactory(props);
     }
 
+    /**
+     * 获取调度实例 - 重载
+     * @param props
+     * @return
+     * @throws SchedulerException
+     */
     public static StdSchedulerFactory getStdSchedulerFactory(Properties props) throws SchedulerException {
         return new StdSchedulerFactory(props);
     }
 
+    /**
+     * 获取调度实例 - 重载
+     * @param schedulerName
+     * @return
+     * @throws SchedulerException
+     */
     public static StdSchedulerFactory getStdSchedulerFactory(String schedulerName) throws SchedulerException {
         Properties props = new Properties();
         props.setProperty("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
@@ -82,7 +95,6 @@ public class QuartzUtils {
 
     /**
      * 绑定监听器
-     *
      * @param scheduler
      * @param schedulerListener
      * @param jobListener
@@ -104,7 +116,6 @@ public class QuartzUtils {
 
     /**
      * 绑定多个监听器
-     *
      * @param scheduler
      * @param schedulerListeners
      * @param jobListeners
@@ -132,7 +143,6 @@ public class QuartzUtils {
 
     /**
      * 延时启动
-     *
      * @param scheduler    调度器
      * @param job          JobClass
      * @param initialDelay 首次延时启动时间
@@ -160,7 +170,6 @@ public class QuartzUtils {
 
     /**
      * 延时启动
-     *
      * @param scheduler    调度器
      * @param job          JobClass
      * @param initialDelay 首次延时启动时间
@@ -284,6 +293,14 @@ public class QuartzUtils {
                 .build();
     }
 
+    /**
+     * 获取触发器
+     * @param timer
+     * @param jobName
+     * @param groupName
+     * @param statTime
+     * @return
+     */
     private static Trigger getTrigger(String timer, String jobName, String groupName, Date statTime) {
         CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(timer);
         cronScheduleBuilder.withMisfireHandlingInstructionFireAndProceed(); // 默认 以当前时间为触发频率立刻触发一次执行,然后按照Cron频率依次执行.会合并部分的misfire,正常执行下一个周期的任务.

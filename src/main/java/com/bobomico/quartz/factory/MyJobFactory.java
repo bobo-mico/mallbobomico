@@ -27,5 +27,4 @@ public class MyJobFactory extends SpringBeanJobFactory {
         capableBeanFactory.autowireBean(jobInstance);
         return jobInstance;
     }
-
 }

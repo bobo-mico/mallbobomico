@@ -13,11 +13,9 @@ import java.lang.annotation.Target;
  * @Description:
  * @version:
  */
-
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface LogField {
-
     /**
      * 列名
      */

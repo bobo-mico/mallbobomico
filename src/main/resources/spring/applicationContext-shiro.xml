@@ -124,6 +124,7 @@
         <property name="authorizationCachingEnabled" value="true" />
         <property name="authorizationCacheName" value="authorizationCache" />
     </bean>
+
     <bean id="userPassRealm" class="com.bobomico.shiro.realm.UserPassRealm">
         <!-- 凭证匹配器 其中有关于加密算法和加密次数等重要信息 -->
         <property name="credentialsMatcher" ref="retryLimitHashedCredentialsMatcher"/>

@@ -17,11 +17,10 @@ import java.util.Date;
  * @Author: Lion
  * @Date: 2019/3/23  20:35
  * @Description: 用户状态解锁调度器
- *                  迁移到SchedulerUtil
+ *                  FIXME 需调整 使用QuartzUtils
  * @version:
  */
 @Slf4j
-@Deprecated
 public class UserStatusScheduler implements Observer {
 
     // FIXME 测试属性 上线删除

@@ -43,15 +43,23 @@
             spring上下文
         -->
         <property name="applicationContextSchedulerContextKey" value="applicationContextKey"/>
-        <!-- 如果这个覆盖配置为false quratz启动以后将以数据库的数据为准 配置文件的修改不起作用 -->
+        <!--
+            允许覆盖
+            可选 如 overWriteExistingJobs 设置为 false(默认为 false)，则碰到新的 quartz_job.xml
+            文件中有与现有调度器中同名的 jobDetail 则不覆盖 这就会出现只改了job 的 cron 表达式而不能重新生效的情况
+            在持久化化境下 quratz启动将扫描数据库并加载数据库的job 此时配置文件的修改就不起作用了
+            把 overWriteExistingJobs 设置为 true 就可以避免出现这种情况，可随时修改 job.xml 动态调整执行计划
+        -->
         <property name="overwriteExistingJobs" value="true"/>
-        <!-- 数据源 -->
+        <!-- 必须 QuartzScheduler 延时启动，应用启动完后 QuartzScheduler 再启动 -->
+        <property name="startupDelay" value="2" />
+        <!-- 必须 数据源 -->
         <property name="dataSource" ref="quartzDataSource"/>
-        <!-- 覆盖原有的配置文件 -->
+        <!-- 可选 覆盖原有的配置文件 -->
         <property name="configLocation" value="classpath:quartz/quartz.properties"/>
-        <!-- 重要!!! -->
+        <!-- 重要 customJobFactory 是为了解决Spring quartz Job不能依赖注入。 -->
         <property name="jobFactory" ref="myJobFactory"/>
-        <!-- 绑定JobDetails -->
+        <!-- 绑定 JobDetails -->
         <property name="jobDetails">
             <list>
                 <!--<ref bean="unlockJobDetail" />-->

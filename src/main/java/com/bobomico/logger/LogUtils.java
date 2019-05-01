@@ -35,7 +35,6 @@ public class LogUtils {
 
     /**
      * 获取新增操作的日志内容
-     *
      * @param obj 页面对象，必传
      * @param objMap 对象日志常量内容，不必传
      * @return String 获取操作后日志
@@ -60,7 +59,6 @@ public class LogUtils {
 
     /**
      * 获取修改操作的日志内容
-     *
      * @param obj1 数据库对象，必传
      * @param obj2 页面对象，必传
      * @param objMap 对象日志常量内容，不必传
@@ -107,7 +105,6 @@ public class LogUtils {
 
     /**
      * 日志常量内容替换
-     *
      * @param logs 日志内容
      * @param objMap 日志常量内容
      * @return
@@ -130,7 +127,6 @@ public class LogUtils {
 
     /**
      * 获取对象注解内容、属性值
-     *
      * @param t 实体对象
      * @param fields 操作注解的对象
      * @param operateType 操作类型：add 新增， update 修改
@@ -166,7 +162,6 @@ public class LogUtils {
 
     /**
      * 查找实体类内的实体对象属性，并处理之
-     *
      * @param fields 操作注解的对象
      * @param operateType 操作类型：add 新增， update 修改
      * @return

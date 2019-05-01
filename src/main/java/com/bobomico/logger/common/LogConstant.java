@@ -14,7 +14,6 @@ import java.util.Map;
 public final class LogConstant {
     /**
      * 测试日志常量内容
-     *
      * @return
      */
     public static Map<String, String> testConstant() {
