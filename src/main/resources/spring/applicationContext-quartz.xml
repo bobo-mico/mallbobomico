@@ -7,9 +7,8 @@
             http://www.springframework.org/schema/context
             http://www.springframework.org/schema/context/spring-context-4.3.xsd"
        default-autowire="no" >
-
-    <context:component-scan base-package="com.bobomico.quartz"/>
-    <context:component-scan base-package="com.bobomico.observer"/>
+    <!-- 消除报错 -->
+    <context:component-scan base-package="com.bobomico.quartz, com.bobomico.notify"/>
 
     <!-- 读取属性文件 -->
     <context:property-placeholder location="classpath:quartz/quartz.properties" ignore-unresolvable="true" />
@@ -30,14 +29,14 @@
         </property>
     </bean>
 
-    <!-- 配置带参Job -->
-    <bean id="UserScheduler" class="com.bobomico.quartz.stevexie.scheduler.UserScheduler">
+    <!-- FIXME 配置带参调度器助手 马上可以换掉了 -->
+    <bean id="UserScheduler" class="com.bobomico.quartz.scheduler.UserStatusScheduler">
         <constructor-arg ref="userStatusSubject" />
     </bean>
 
     <!-- 第三元素 -->
     <!-- 调度器 -->
-    <bean name="quartzScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <bean name="micoScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <!--
             是org.springframework.scheduling.quartz.SchedulerFactoryBean这个类中把spring上下文以key/value
             的方式存放在了quartz的上下文中了 可以用applicationContextSchedulerContextKey所定义的key得到对应的
@@ -84,19 +83,32 @@
         <!--&lt;!&ndash;<property name="repeatInterval"  value="2000"/>&ndash;&gt;-->
     <!--</bean>-->
 
-    <!-- 第一元素 第二种配置方式 可选参数更多 功能强大 -->
+    <!--
+         第一元素 JobDetail也被称为Job实例
+         第二种配置方式 可选参数更多 功能强大
+         Job实例要到该执行它们的时候才会实例化出来。每次Job被执行，一个新的Job实例会被创建。
+         其中暗含的意思就是你的Job不必担心线程安全性，因为同一时刻仅有一个线程去执行给定Job类的实例，
+         甚至是并发执行同一Job也是如此。
+         https://www.cnblogs.com/mengrennwpu/p/7141986.html?utm_source=itdadao&utm_medium=referral
+
+         durability – 持久性，如果 Job 是非持久性的，那么执行完 Job 后，如果没有任何活动的 Trigger 与之关联，
+         那么将会被调度器自动删除。换句话说，非持久性的 Job 的生命周期与它关联的 Trigger 相关。
+         requestsRecovery – 如果任务设置了 RequestsRecovery，那么它在调度器发生硬停止（例如，当前进程 crash，或者机器宕机）后，
+         当调度器再次启动的时候将会重新执行。这种情况下，JobExecutionContext.isRecovering() 方法将会返回 true。
+         https://blog.csdn.net/wjacketcn/article/details/51133098
+    -->
     <bean id="JobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
-        <!-- 非空 在此处定义任务描述 -->
-        <property name="jobClass" value="com.bobomico.quartz.stevexie.jobdetail.UnlockJob" />
-        <!-- 非空 在此处定义任务名 -->
+        <!-- 非空 定义任务 -->
+        <property name="jobClass" value="com.bobomico.quartz.job.impl.UnlockJob" />
+        <!-- 非空 定义任务名 -->
         <property name="name" value="unlockJob" />
-        <!-- 非空 在此处定义job group name -->
+        <!-- 非空 定义任务所在组名 -->
         <property name="group" value="userLoginGroup" />
-        <!-- 可选 设置该job是否具有持久性 -->
-        <property name="durability" value="true" />
-        <!-- 可选 设置该job是否中断后可恢复 -->
+        <!-- 可选 设置该任务是否具有持久性 注意不是持久化 当执行完就删除 不用保留 -->
+        <property name="durability" value="false" />
+        <!-- 可选 设置该任务是否中断后可恢复 恢复调度现场 -->
         <property name="requestsRecovery" value="true" />
-        <!-- 可选 设置jobDataMap -->
+        <!-- 可选 设置jobDataMap @PersistJobDataAfterExecution注解 将影响该属性的行为 -->
         <!--<property name="jobDataMap">-->
             <!--<map>-->
                 <!--<entry key="LoginUser" value-ref="UserLoginVO"/>-->

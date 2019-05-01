@@ -6,23 +6,18 @@ import com.bobomico.dao.po.SysPermission;
 import com.bobomico.dao.po.SysRole;
 import com.bobomico.dao.po.SysUserLogin;
 import com.bobomico.service.IUserService;
-import com.bobomico.shiro.cachemanager2.util.CustomSimpleByteSource;
+import com.bobomico.shiro.cache.util.CustomSimpleByteSource;
 import com.bobomico.shiro.token.EmailPasswordToken;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
-import org.apache.shiro.authz.AuthorizationException;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**

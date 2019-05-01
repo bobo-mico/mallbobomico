@@ -13,6 +13,7 @@
     <bean id="propertyConfigurer"
         class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="order" value="2"/>
+        <!-- ignoreUnresolvablePlaceholders 是否忽略不可解析的 Placeholder -->
         <property name="ignoreUnresolvablePlaceholders" value="true"/>
         <property name="locations">
             <list>
@@ -23,7 +24,7 @@
     </bean>
 
     <!-- 数据库连接池 -->
-    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <bean id="mysql_bobomico" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="${db.driverClassName}"/>
         <property name="url" value="${db.url}"/>
         <property name="username" value="${db.username}"/>
@@ -55,24 +56,60 @@
         <property name="validationQuery" value="SELECT 1 FROM dual"/>
     </bean>
 
-    <!-- todo -->
+    <bean id="mysql_bobomico_quartz" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${db2.driverClassName}"/>
+        <property name="url" value="${db2.url}"/>
+        <property name="username" value="${db2.username}"/>
+        <property name="password" value="${db2.password}"/>
+        <property name="initialSize" value="${db.initialSize}"/>
+        <property name="maxActive" value="${db.maxActive}"/>
+        <property name="maxIdle" value="${db.maxIdle}"/>
+        <property name="minIdle" value="${db.minIdle}"/>
+        <property name="maxWait" value="${db.maxWait}"/>
+        <property name="defaultAutoCommit" value="${db.defaultAutoCommit}"/>
+        <property name="removeAbandoned" value="${db.removeAbandoned}"/>
+        <property name="removeAbandonedTimeout" value="${db.removeAbandonedTimeout}"/>
+        <property name="testWhileIdle" value="${db.testWhileIdle}"/>
+        <property name="timeBetweenEvictionRunsMillis" value="${db.timeBetweenEvictionRunsMillis}"/>
+        <!-- ? -->
+        <property name="numTestsPerEvictionRun" value="${db.numTestsPerEvictionRun}"/>
+        <!-- ? -->
+        <property name="minEvictableIdleTimeMillis" value="${db.minEvictableIdleTimeMillis}"/>
+    </bean>
+
+    <!-- Session工厂 多数据源配置 -->
     <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-        <property name="dataSource" ref="dataSource"/>
+        <property name="dataSource" ref="multipleDataSource"/>
         <property name="mapperLocations" value="classpath*:mappers/*.xml"></property>
     </bean>
 
-    <!-- 扫描dao接口 mybatis动态代理 -->
+    <!-- 扫描dao接口 实现mybatis动态代理 -->
     <bean name="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
         <property name="basePackage" value="com.bobomico.dao"/>
     </bean>
 
+    <!-- 多数据源必须支持aop -->
+    <aop:aspectj-autoproxy/>
+
+    <bean id="multipleDataSource" class="com.bobomico.pubfound.MultipleDataSource">
+        <!-- 默认数据源 -->
+        <property name="defaultTargetDataSource" ref="mysql_bobomico"/>
+        <property name="targetDataSources">
+            <map>
+                <entry key="business" value-ref="mysql_bobomico"/>
+                <entry key="quartz" value-ref="mysql_bobomico_quartz"/>
+            </map>
+        </property>
+    </bean>
+
+    <!-- FIXME 多数据源暂时搁置的配置 -->
     <!-- 使用@Transactional进行声明式事务管理需要声明下面这行 -->
-    <tx:annotation-driven transaction-manager="myTransactionManager" proxy-target-class="true" />
+    <!--    <tx:annotation-driven transaction-manager="myTransactionManager" proxy-target-class="true" />-->
 
     <!-- 事务管理 -->
-    <bean id="myTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="rollbackOnCommitFailure" value="true"/>
-    </bean>
+    <!--    <bean id="myTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">-->
+    <!--        <property name="dataSource" ref="mysql_bobomico"/>-->
+    <!--        <property name="rollbackOnCommitFailure" value="true"/>-->
+    <!--    </bean>-->
 
 </beans>

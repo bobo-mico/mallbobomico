@@ -11,8 +11,8 @@
         http://www.springframework.org/schema/aop
        http://www.springframework.org/schema/aop/spring-aop.xsd">
     <!-- 扫描包可以消除报红 -->
-    <context:component-scan base-package="com.bobomico.observer" annotation-config="true" />
-    <context:component-scan base-package="com.bobomico.shiro.cachemanager2" annotation-config="true" />
+    <context:component-scan base-package="com.bobomico.notify" annotation-config="true" />
+    <context:component-scan base-package="com.bobomico.shiro.cache" annotation-config="true" />
 
     <!-- 过滤器 -->
     <!-- web.xml中shiro的filter对应的bean -->
@@ -53,6 +53,9 @@
                 /styles/** = anon
                 /css/** = anon
                 /*.html = anon
+
+                <!-- Quartz可视化测试 -->
+                /manage/scheduler/*.do = anon
 
                 <!-- 缓存测试 -->
                 /ehcache/*.do = anon
@@ -172,7 +175,7 @@
     <!-- sessionDAO -->
     <!-- 随后需要定义有一个sessionDAO，指的是你的session需要缓存的位置，本次暂时将所有的会话数据保存在内存里面。
          默认会话缓存处理：org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO -->
-    <bean id = "sessionDAO" class = "com.bobomico.shiro.cachemanager2.sessionmanager.CustomShiroSessionDao">
+    <bean id = "sessionDAO" class = "com.bobomico.shiro.cache.sessionmanager.CustomShiroSessionDao">
         <!-- sessionId生成器 -->
         <property name = "sessionIdGenerator" ref="sessionIdGenerator"/>
         <!-- sessionDAO操作 -->
@@ -183,7 +186,7 @@
     <bean id="sessionIdGenerator" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator" />
 
     <!-- 缓存管理器 实现了CacheManager -->
-    <bean id = "customCacheManager" class ="com.bobomico.shiro.cachemanager2.cachemanager.CustomCacheManager">
+    <bean id = "customCacheManager" class ="com.bobomico.shiro.cache.cachemanager.CustomCacheManager">
         <property name ="shrioCacheManager" ref="redisCacheManagerImpl"/>
     </bean>
 

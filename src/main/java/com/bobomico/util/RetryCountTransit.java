@@ -1,7 +1,5 @@
 package com.bobomico.util;
 
-import org.springframework.stereotype.Component;
-
 /**
  * @ClassName: com.bobomico.util.bobomicomall
  * @Author: Lion

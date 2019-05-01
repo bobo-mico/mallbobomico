@@ -47,6 +47,7 @@ Thumbs.db
 my/*
 
 ### ehcache-rmi
-ehcache/ehcache-rmi-1000.xml
-ehcache/ehcache-rmi-2000.xml
-spring/applicationContext-ehcache.xml
+/src/main/resources/spring/applicationContext-ehcache.xml
+/src/main/resources/ehcache/ehcache-rmi-1000.xml
+/src/main/resources/ehcache/ehcache-rmi-2000.xml
+/src/main/resources/spring/applicationContext-ehcache.xml

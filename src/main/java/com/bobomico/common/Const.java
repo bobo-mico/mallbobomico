@@ -11,7 +11,7 @@ import java.util.Set;
  * @Description: 常量类
  * @version:
  */
-public class Const {
+public final class Const {
 
     public static final String CURRENT_USER = "currentUser";
     public static final String EMAIL = "email";
@@ -47,9 +47,9 @@ public class Const {
         int LOCKED = 2;
     }
 
-    // 自动解锁时间
+    // 自动解锁时间 1s = 1000ms
     public interface quartz{
-        long UNLOCKTIME = 3000;
+        long UNLOCKTIME = 2 * 60 * 1000L;
     }
 
     // 通过邮件激活账户
